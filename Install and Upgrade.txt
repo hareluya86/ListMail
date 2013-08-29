@@ -1,0 +1,24 @@
+[ Installation ]
+
+1. Edit the CONFIG.PHP.txt file with notepad to contain your MySQL information and save it to EXACTLY "config.php".
+
+2. Upload it, and the rest of ListMail, to your web host into a directory (ie. yoursite.com/mail)
+
+3. Open the directory in your web browser ( http://yoursite.com/mail )
+
+4. Type "install" as the login password.
+
+5. Click "Install".
+
+6. Go to the Config menu.
+
+At this point you're ready to collect subscribers and send emails.  You still need to schedule the cron task on your isp to run dailymail each day.
+
+To set up bounced message processing. see the Help button in it's section in the Configuration menu, or the README.TXT in the /cgi directory for more information.
+
+
+[ Upgrading ]
+
+1. Overwrite your old files with the new ones.  (Do not overwrite the CGI scripts or config.php unless specified.)
+
+2. Log in to ListMail.

@@ -1,0 +1,321 @@
+Changes v1.87d -> v1.88
+
+ - fixed a bug with the installation login cookie
+ - fixed global message codes supserseding list-specific codes 
+ - improved email validation function - see http://www.linuxjournal.com/article/9585
+ - added an alternative version of bounce.cgi that uses POST and does not require a system utility
+
+note: you can replace just signup.php, editconf.php and admin.php.  all changes will take effect without any notification as there is no database update required
+
+-----------------------------------------------------------------
+
+Changes v1.87 -> v1.87d
+
+ - fixed 'Update all users on this followup to new delay' feature
+ - fixed 'Always write SMTP log' feature - was not writing log during dailymail
+ - fixed display issue with 'skip bounce via mailbox' checkbox on dailymail page
+ - fixed display issue with 'you have items in outgoing queue'
+ - added list 'additional options' processing when importing users
+ + fixed a bug in this feature's implementation
+ - fixed 'move users who reach end of followup sequence' list followup option
+ - fixed error when scheduling email to more than one user selection on the same day
+ - improved security of upgrade.php script
+
+-----------------------------------------------------------------
+
+Changes v1.86b -> v1.87
+
+ - added followup options for moving and removing users who reach end of sequence
+ - added meta 'robots' tag with 'noindex,nofollow' to prevent search engine indexing of ListMail pages
+ - added overwrite active and custom refurl options to user import process
+ - added referring url to user selection
+ - added 'number of subscribers' message code with optional offset value
+ - added user status, ip address, referring url and html fields plus new web export options to export process
+ - added confirmation reminder emails - can be set to send every X days to a maximum of X messages
+ - fixed multi-list remove via form - now correctly removes users even if already removed from one or more selected lists
+ - improved login. if you try to access a ListMail page when not logged in you are now brought to the login page
+  + the url you tried to access is saved and automatically redirected to upon login. (bookmark your internal urls!)
+ - added warning if more than 50% of messages are 'skipped' with SMTP due to auth errors not being detected on some servers
+ - rewrote backup & restore process - linux mysql command-line utilities are no longer required, backup should work on Windows
+  + current list is no longer lost when writing backup files
+ - added new 'Upload' option to backup process to promote new backup service.
+  + set $no_auto_backup=1; in config.php to disable
+ - fixed PHP uploads, must use $_FILES instead of $HTTP_POST_FILES for later versions of PHP
+ - fixed mysql connection failure on servers with slow DNS response for invalid domains during SMTP
+  + default socket timeout is 9s, can set $smtp_timeout var in config.php to override
+ - added ability to enable SMTP debug log globally
+ - added ability to make custom fields required, complete with user-defined error messages
+ - added ability to specify custom seq and delay with loop followups
+ - improved multi-list subscribe - success if dupe on one list but not on at least one other
+  + error if missing required field on any list
+  + list 'additional options' targeting lists being subscribed to ignored
+ - fixed a rare issue with GET-style vars on certain servers. if last var was empty no vars were posted
+ - fixed inability to rename error message sets under FireFox
+
+-----------------------------------------------------------------
+
+Changes v1.86 -> v1.86b
+
+ - fixed dailymail 'skip bounce via mailbox' option - mailbox processing was not running in v1.85+
+ - fixed saving of certain search rules in user selection
+
+-----------------------------------------------------------------
+
+Changes v1.85 -> v1.86
+
+ - added ability to add, name, save, load, and edit entire sets of followups
+ - added ability to schedule application of followup sets
+ - added ability to send more than one followup on the same day with duplicate seq #s
+ - added 'loop followups' list option to automatically restart users at end of sequence to first followup
+ - added 'reset+load saved followup set when x% users are at end of sequence' list option
+ - added list options to remove/add users from/to other lists when removed/added to list
+ - added offsets to date-based message codes, can specify +/- days, months, years, and combinations
+ - added 'set to default' option to custom html, default html resets to system default others to default html
+ - added Message-Id: header to SMTP emails in accordance with internet email standards
+ - removed zip compression from backup and restore due to inability to overcome memory limits
+ - added gzip compression to backup AND restore with memory buffer for very large files
+ - added delay # to user selection searches
+ - improved 'reset users' to allow setting all users on current list to a chosen followup and delay
+ - improved list settings page when deleting lists, now sets current list to next lower or first list
+ - fixed users who subscribe, do not confirm, and then resubscribe again now keep the same uid
+ - fixed users who click confirm twice are now shown a 'duplicate email' error and do not receive another email
+ - fixed occasional FireFox display width issue on message editing page when Date showing
+ - fixed quotes in filenames causing inability to apply attachments
+ - fixed file upload issue on some restrictive web hosts - imports are now temp copied to ./attach
+ - fixed signup-xtra.php optional custom script processing during import
+ - fixed dailymail report, now sent when a mailing is completed even if smtp error or server timeout
+ - fixed sent message maintenance, messages are now properly removed
+ - removed aol.com from text-only default
+ - added ability to disable new dailymail 'once every 23h55m' protection
+
+-----------------------------------------------------------------
+
+Changes v1.84 -> v1.85
+
+ - added copy list feature to easily copy a list's settings and followups into a new list
+ - added auto-resume scheduled script, see http://listmailpro.com/help/autoresume.html
+ - added storage of dailymail last execution time. dailymail will not run via cron task until 23h55m has passed
+ - added queue protections to prevent duplicate emails when refreshing the send page or resuming queues that are running
+ - added the ability to move or add followups into the middle of a live sequence, inserting them
+ - added 'smart' followup and user seq # renumbering when adding, inserting, and deleting followups
+ - added 'reset users' option to followups to restart all users on the first followup
+ - added new options when running dailymail manually. can now skip certain routines
+ - added cron-style followup timing for unbeatable flexability
+ - added field names on first line option to export feature
+ - added custom MySQL query feature to user selection
+ - added text-only option for specified domains (bottom of Config page)
+ - added ability to parse subject lines of email subscriptions, entering data into custom field of choice (see cgi)
+ - added field to sent messages to display list or user selection sent to
+ - added zip to backup feature, speeding up download
+ - removed undocumented AOL text-only and link reformatting, added as default for new text-only option
+ - fixed login password focus under FireFox
+ - fixed 'notify when a user is manually added' option, no longer sends when 'notify when a user subscribes' is enabled
+ - fixed Custom HTML rename focus/form problems under FireFox
+ - fixed some display width errors on the message editing, user database and user edit pages
+
+-----------------------------------------------------------------
+
+Changes v1.8 -> v1.84
+
+ - added sent message viewing capability (long overdue)
+ - added smtp logfile option on 'send email' page to prevent having to manually edit admin.php to enable it
+ - added 'date added', 'ip address', and 'referring url' to user database search option
+ - added custom fields, 'ip address', and 'referring url' to sort options
+ - improved/fixed user database search and sort options to maintain values when adding, editing, and saving users
+ - fixed 'live counters' when sending and importing using FireFox
+ - fixed import process to correctly increment in batches of 1000
+-----------------------------------------------------------------
+
+Changes v1.77b -> v1.8
+
+- improved sendmail error recovery
+- modularized custom HTML and error messages.  can now apply single templates to more than one list
+- modularized all email editing pages (followups, send email, scheduler, welcome, confirm) to allow for save/load, admin preview
+- added selective sending for sending to sub lists based on search results, date added, etc.
+- added "remove confirm" message code for use on remove confirm custom HTML pages, formerly in custom HTML
+- added "confirm link" message code for confirmation process
+- added welcome and confirmation messages to import process
+- added backup verification routine to notify of incomplete backups in case of server error
+- added primary index on the queue table field 'id' for faster sending to large lists
+- renamed remove.php to rem.php due to spamassassin scoring.  remove.php no longer packaged
+- fixed bugs in SMTP where non-success RCPT responses (sendmail) were causing problems.  now ignored but will be considered for processing
+- added ability to save more user database display preferences
+- added field number display on user editing page so one knows which custom fields are which
+- added maintenance options on config page for sent messages, tracked hits, and unconfirmed users
+- made 'send dailymail report' and 'keep users in db but dont mail' enabled by default
+- cleaned up database, removed some unneeded fields from config and list tables
+- added capitalization feature to message codes that deal with users' names
+- added mouseover effects to most buttons
+- added stretch feature to quick load menu so long subjects can be read
+- updated link tracking test to use javascript instead of loading in the current window
+- updated scheduler main page date fields to use select boxes instead of text
+
+note: when upgrading to this version you will need to re-customize your "remove confirm" remove buttons. a default code !button, previously used in every list's remove confirm html, has been created in global codes. you will need to create more codes and update your html to use them if you want to customize each list's remove button.
+
+-----------------------------------------------------------------
+
+Changes v1.77 -> v1.77b
+
+- fixed a bug in Link to HTML message code where message codes were not being processed
+- fixed a bug in SMTP that would cause mailings to stop if a queued user removed themselves before delivery
+- dramatically improved sending time to large lists with new mysql index on queue table
+- added average emails per second and per hour timers on sending page
+- improved IP address detection method to deal with proxy servers
+- added IP address detection upon confirmation to track email subscribers
+- rewrote "test mail settings" SMTP test to prevent inconsistencies.  also added bounce.cgi test
+- fixed "test mail settings" to use a remote address instead of the admin's, which was not effective in most cases
+-! removed automatic <br> after HTML remove link outputted by message code.  you may want to update your HTML messages
+- made show/sort settings on user database page permanent, stored in database
+- changed user database page layout to allow for more buttons
+- fixed register_globals problem where slashes still weren't being added / removed properly
+- started work on new style sheet, will soon allow for themes
+- copied remove.php to rem.php and changed the generated remove link to prevent scoring with SpamAssassin, may delete remove.php entirely in a future version when most messages containing references to it have been read and forgotten
+- fixed signup-xtra.php problem.  wasn't re-selecting database if using a second MySQL connection
+- added 'bounced' user status when removing bouncing users with 'keep removed users in database' enabled
+- added active / unconfirmed / removed / bounced option in Export process and improved file download method
+- made message codes case-insensitive in use and when checking duplicates upon creation or changing lists
+- made link.php stop caching to provide more accurate hit tracking when testing
+- improved mysql detection for backup/restore in PHP safe mode.  also fixed a bug when detecting
+- increased mysql field sizes to support 65535 lists and 65535 characters in custom user data fields
+- further fixed SMTP bug where periods at the beginning of a line would be stripped
+- added IP address, date of subscription, and Ref URL message codes
+- installation made easier with automatic domain and directory detection, domain also detected when creating lists
+- changed from sessions to cookies for authentication, no more login timeouts!
+- no more 'warning: page has expired' when pressing Back, via cache setting
+- fixed various special character problems in text boxes
+- added 'Link to HTML' message code to use as a text message when sending HTML
+- added borders, etc. to import interface
+- added dateadd, refurl, ip address, list #, seq #, delay # to available import fields
+- added tracked links to 'view message code' menus.  added 'view message codes' on followup pages
+- fixed SMTP to properly break when certain errors occur and output response message for better indication of what's going on
+- fixed single quote problems in names when manually adding
+
+-----------------------------------------------------------------
+
+Changes v1.75 -> v1.77
+
+- added option to specify followup and delay when importing, adding users
+- fixed interface problems when editing or adding users and changing lists, now updates with custom fields / followups
+- added option to set delay of all users on a followup, good for adding to end of sequence
+- fixed bug with duplicates going out to users on more than one list when mailing to all lists
+- fixed bug with remove script where list wasn't being found
+- fixed display problems when deleting or renumbering lists
+- added 'opt-out list' capability to keep removed users in database and exclude them from imports
+- added ability to remove all users on current list before importing
+- added forced text-only email and automatic clickable links and email addresses for AOL users
+- fixed a bug with bounce dates in the new system being +100 days, though it didn't affect the operation of the script, since it relies on "days between" bounces.  adjusted all users' dates in update
+
+-----------------------------------------------------------------
+
+Changes v1.7 -> v1.75
+
+- rewrote bounced message processing to allow for X bounces in X days
+- fixed bugs with negative delay numbers, reset negative delays to 0 to reenter users in sequence
+- fixed bugs with some duplicate checking not being case insensitive
+- fixed all bugs in email validation script
+- fixed link tracking display issue where the wrong name would be shown if a tracked user didn't have a name
+- added option to disable translating line breaks to <br> in custom text message codes, useful for if you are pasting HTML with a code.<br>
+- extended length of date field on scheduled message page, was causing Mac IE problems
+- extended length of hit field on the link page, wouldn't show more than 3 digits of hits
+- AOL subscribers will only be sent the text message to prevent bounces, links and emails are automatically made clickable
+- fixed HTML confirmation message slashes bug arising from incorrect var name
+- fixed bugs with current list when editing and manually adding users
+
+-----------------------------------------------------------------
+
+Changes v1.65 -> v1.7
+
+- removed all "bad bounced messages" most users can now be removed automatically
+- fixed the very annoying bug that would remove periods in emails sent with SMTP!
+- added support for followup lists with deleted messages.  will now seek and set the next followup in broken numbered lists
+- added/fixed error checking when adding, editing, quick saving, and moving lists in users, followups, scheduled msgs, and msg codes
+- fixed bug with incorrect number of total lists in dailymail report
+- added admin notification options for manual user additions and when bouncing users are deleted
+- fixed bug causing blank entries in user database, message codes, scheduler, followups when adding and not hitting cancel
+- added auto detecting of path to MySQL binaries to prevent backup problems
+- added export to CSV function with unlimited rules to limit or build desired list (bottom right of user menu)
+- fixed login cookie & restore oversight with new instid that caused "you are already logged in" loop
+- fixed user database sorting bugs
+- added default value for custom field message codes
+- optimized SMTP to be even faster with pipelining support
+- optimized import process to handle any size files / databases with less delay & memory
+
+-----------------------------------------------------------------
+
+Changes v1.62 -> v1.65
+
+- added autoresponder-style email subscribe & remove CGI scripts
+- added multi-list subscribe for both email and form-based signups
+- fixed bug with improper line breaks in Outlook 2000+
+- fixed bug with message codes in removal confirmation email and custom html
+- fixed incorrect naming of custom field 5 in signup generator
+- increased security of login authentication cookie with install id
+
+-----------------------------------------------------------------
+
+Changes v1.6 -> v1.62
+
+- fixed notifications, message codes in confirmation pages with the new process
+- added bounce.cgi to process bounced messages upon reception, eliminating the need for a slow and possibly crashable POP mailbox.
+- increased efficiency with MySQL, now use proper indexing and optimizing to reduce server load and query response times
+- improved user page search options, can now search custom fields, sort search results properly, show results only from the current list
+- fixed bug in message codes and user adding, if you cancelled an addition and then changed another entry's list #, the entry would be lost.
+- fixed bug in list dropdown with lists not sorting correctly, it is now done by the actual list number.
+
+-----------------------------------------------------------------
+
+Changes v1.53 -> v1.6
+
+- fixed bugs in import script
+- added "add user" to user edit page for easier manual addition of multiple users
+- added dupe / blank / bad format checking to manual user additions and quick saves
+- tweaked the user editing page for 2 column custom fields and email before name
+- added scheduling system to send mails by date
+- message codes now work in signup/confirm Custom HTML success page
+- added user ID and list title message codes
+- added support for servers using register_globals_off (PHP 4.2.0)
+- added $sqlpath var to config.php for people having troubles with backup writing a 0kb file
+- hopefully fixed dailymail memory problems and stopped bounced mailbox overflows on large imported lists
+- added email notification for signups, removes, dailymail, and bad password
+- modified mail sending back end to allow for RESUMABLE queues in case of crashes, a failed mailing will be automatically detected on any page within ListMail and it will ask you to resume.
+
+-----------------------------------------------------------------
+
+Changes v1.52 -> v1.53
+
+- fixed import sql bug where custom fields werent working
+- made custom fields in edit user have 2 columns
+- added duplicate checking for manually adding
+- reworked mail sending routines to allow for more types of messages
+
+-----------------------------------------------------------------
+
+Changes v1.51 -> v1.52
+
+- added backup / restore of entire database data
+- added importing from local mysql database
+- added ipaddress, date, and referring url to users
+- fixed SMTP to be more than 5x as fast
+- added reconnect setting for smtp server
+
+-----------------------------------------------------------------
+
+Changes v1.42 -> v1.51
+
+- optimized layout to be more expandable
+- improved mail routines, fixed various smtp issues
+- added ability to specify how often to check email for smtp authentication via pop
+- added an easy upload menu for attachments
+- added html and attachments for welcome and confirm emails
+- added custom fields, 10 for each list
+- put message codes into a database to be customizable
+- removed "remove text" for each list, moved it into message codes
+- added ability to customize the html link for remove codes
+- removed date format from config menu, can now have unlimited styles with message codes
+- added default value for !fname codes, (ie. "Friend")
+- added dailymail password
+- re-did import functionality
+
+-----------------------------------------------------------------
+
+-EOF-
