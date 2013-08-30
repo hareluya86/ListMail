@@ -1,0 +1,13 @@
+> EHLO localhost
+250-email-smtp.amazonaws.com
+250-8BITMIME
+250-SIZE 10485760
+250-AUTH PLAIN LOGIN
+250 Ok
+LM: AUTH LOGIN Detected
+> AUTH LOGIN
+334 VXNlcm5hbWU6
+> QUtJQUpOSzRaT1hJSTVJM0I1Q0E=
+334 UGFzc3dvcmQ6
+> QXJzZkgzZTJwNlZoZ21VTE1vV24ramhjNA==
+535 Authentication Credentials Invalid

@@ -1,0 +1,24 @@
+> EHLO localhost
+250-email-smtp.amazonaws.com
+250-8BITMIME
+250-SIZE 10485760
+250-AUTH PLAIN LOGIN
+250 Ok
+LM: AUTH LOGIN Detected
+> AUTH LOGIN
+334 VXNlcm5hbWU6
+> QUtJQUpOSzRaT1hJSTVJM0I1Q0E=
+334 UGFzc3dvcmQ6
+> QXJzZkgzZTJwNlZoZ21VTE1vV24ramhjNHNYVDhVOVBTMmdHcFF2YWhIbFI=
+235 Authentication successful.
+> NOOP
+> NOOP
+250 Ok
+> MAIL FROM: <hareluya86@hotmail.com>
+250 Ok
+> RCPT TO: <you@localhost>
+250 Ok
+> DATA
+354 End data with <CR><LF>.<CR><LF>
+> SENT DATA
+554 Message rejected: Email address is not verified.
