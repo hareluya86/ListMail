@@ -1,0 +1,40 @@
+220 email-smtp.amazonaws.com ESMTP SimpleEmailService-513859155
+Connected to host tls://email-smtp.us-east-1.amazonaws.com:465!
+>EHLO localhost
+250-email-smtp.amazonaws.com
+250-8BITMIME
+250-SIZE 10485760
+250-AUTH PLAIN LOGIN
+250 Ok
+AUTH LOGIN detected...
+Start authentication now...
+>AUTH LOGIN
+$srvmsgUsername accepted...
+235 Authentication successful.
+Password accepted...
+Login success!
+NOOP server now...
+>NOOP
+250 Ok
+Sending mail now...
+>MAIL FROM: <hareluya86@hotmail.com>
+250 Ok
+>RCPT TO: <hello@laikaopeh.com>
+250 Ok
+>DATA
+354 End data with <CR><LF>.<CR><LF>
+Date: Sun, 1 Sep 2013 04:50:02 +0000
+From: "Your Site Newsletter" &lt;hareluya86@hotmail.com&gt;
+Message-Id: &lt;20130901045002UTC.@&gt;
+To: hello@laikaopeh.com
+Subject: Welcome!
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+X-Mailer: ListMail v1.87
+X-LMP-Recipient: hello@laikaopeh.com
+
+Welcome to the localhost newsletter.
+> SENT DATA
+250 Ok 00000140d7db4947-8615976f-9024-4cfb-a28a-c113ab9c2541-000000
+>221 Bye

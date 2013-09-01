@@ -46,7 +46,7 @@ if($submode=='unsub'){
 // initial setup
 // get return-path from config
 
-$today = date("Y-m-d");
+$today = date("Y-m-d H:i:s");
 
 $ipaddr = getip();
 if($ipaddr<>'Unknown') $iphost = @gethostbyaddr($ipaddr);

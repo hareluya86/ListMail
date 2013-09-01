@@ -100,10 +100,10 @@ if($edit){
    $uniq = '';
    while(!$uniq){
     $uniq_str = unique_id(7);
-    if(@mysql_num_rows(mysql_query("select id from $utable where uid = '$uniq_str'"))==0) $uniq=1;
+    if(@mysql_num_rows(mysql_query("select id from $utable where uid = '$uniq_str'"))==0) $uniq=1; //searching for existing unique id generated
    }
    if($welcmail || (!$welcmail && !$cnfmail)) $xcnf = '1';  if($cnfmail) $xcnf = '0';
-   $today = date("Y-m-d");
+   $today = date("Y-m-d H:i:s");
    $cmd = "insert into $utable values ('null','$uniq_str','$ulist','$fname','$lname','$email','$user1','$user2','$user3','$user4','$user5','$user6','$user7','$user8','$user9','$user10','$setseq','$setdel','$xcnf','$today','Unknown','Manually Added','$htadd','0')";
    @mysql_query($cmd);
    $id = mysql_insert_id();
@@ -197,7 +197,7 @@ if($edit){
   if($htmail=='1') $htchk1 = ' checked'; else $htchk2 = ' checked';
  } else {
   // user add page
-  $dateadd = date("Y-m-d");
+  $dateadd = date("Y-m-d H:i:s");
   $refurl = "Manually Added";
   $ipaddr = "Unknown";
   if($list=='all' && !$ulist){
@@ -727,6 +727,9 @@ echo " </td></tr></table></div><img src=1.gif height=5><br><input class=button t
     $refurl = $udata[$ru];
     $ulist = $udata[$ls];
     $dateadd = $udata[$da];
+	//debug
+	echo 'edituser assign vars '.$dateadd;
+	//debug
     $seq = $udata[$sq];
     $del = $udata[$de];
     $user1 = $udata[$u0];
@@ -782,7 +785,7 @@ echo " </td></tr></table></div><img src=1.gif height=5><br><input class=button t
      $x++;
      if($seq) $setseq = $seq;
      if($del) $setdel = $del;
-     if($dateadd) $today = $dateadd; else $today = date("Y-m-d");
+     if($dateadd) $today = $dateadd; else $today = date("Y-m-d H:i:s");
      if($refurl || !$customrefu) $refu = addslashes($refurl);
 	elseif($customrefu) $refu = addslashes($crvalue);
 	else $refu = 'Imported';

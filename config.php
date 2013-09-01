@@ -30,7 +30,7 @@ $sqldb = 'listmail';
 // Use -f setting to set return-path correctly with PHP mail()
 // This is used for welcome and confirmation messages.  If you are receiving "raw" bounce
 // messages from welcome emails even if you have bounce configured this may need to be set.
-$phpmailf = '';
+ $phpmailf = '';
 // $phpmailf = 1;
 
 // International character set, default iso-8859-1 if not set)

@@ -1,0 +1,4 @@
+Connected to host tls://email-smtp.us-east-1.amazonaws.com:465!
+>EHLO localhost
+$srvmsgLogin not available...
+220 email-smtp.amazonaws.com ESMTP SimpleEmailService-513859155
