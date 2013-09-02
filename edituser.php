@@ -867,7 +867,7 @@ echo " </td></tr></table></div><img src=1.gif height=5><br><input class=button t
      flush();
      @mysql_query("lock tables $utable",$link);
     }
-    if($done || (($xcnt+1) % 10000) == 0) @mysql_query("optimize table lm_users",$link);
+    if($done || (($xcnt+1) % 10000) == 0) @mysql_query("optimize table $utable",$link);
 
    } // end !done
    @unlink($filename);

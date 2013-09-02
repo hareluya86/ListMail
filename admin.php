@@ -67,7 +67,7 @@ $ctable = 'lm_config';
 $ltable = 'lm_lists';
 $ftable = 'lm_follow';
 $fstable = 'lm_follows';
-$utable = 'lm_users';
+$utable = 'newsletter_subscribers'; // $utable = 'lm_users';
 $ktable = 'lm_links';
 $vtable = "lm_custom";
 $stable = "lm_saved";
