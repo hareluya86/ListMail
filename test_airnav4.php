@@ -18,10 +18,10 @@ if(!$res){
 echo "Connected!";
 mysql_select_db($sqldb,$res);
 
-$csv = fopen('./list/Subscribers_migrated.csv','r');
+$csv = fopen('./list/special characters.csv','r');
 $file_index = 1;
 $record_count = 0;
-$batch_size = 1000;
+$batch_size = 10000;
 $sqlcmd = '';
 while(list($id,$uid,$list,$fname,$lname,$email,$user1,$user2,
         $user3,$user4,$user5,$user6,$user7,$user8,$user9,$user10,
