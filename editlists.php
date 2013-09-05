@@ -260,7 +260,7 @@ if ($doedit == 'yes') {
    if(!is_numeric($txtrem_every)||$txtrem_every < 1) $txtrem_every = '1';
    if(!is_numeric($txtrem_max)||$txtrem_max < 1) $txtrem_max = '3';
    $txtremopts = $txtrem_every.';'.$txtrem_max;
-   $cmd = "update $ltable set listnum = '$textlist', title = '$texttitl', sende = '$textsende', sendn = '$textsendn', welcact = '$txtwact', cnfact = '$txtcact', remact = '$txtract', remopts = '$txtremopts', req1 = '$txtreq1', req2 = '$txtreq2', notifs = '$tnotifs', nmails = '$tnmails', listopts = '$tlistopts', chtmlid = '$chtml', errorid = '$emsgs', addopts = '$textaddopts' where id = '$editid'";
+   $cmd = "update $ltable set listnum = '$textlist', title = '$texttitl', sende = '$textsende', sendn = '$textsendn', welcact = '$txtwact', cnfact = '$txtcact', remact = '$txtract', remopts = '$txtremopts', req1 = '$txtreq1', req2 = '$txtreq2', notifs = '$tnotifs', nmails = '$tnmails', listopts = '$tlistopts', chtmlid = '$chtml', errorid = '$emsgs', addopts = '$textaddopts', remote = '$remote', remotedb = '$remotedb', remoteuser = '$remoteuser', remotepwd = '$remotepwd', remotehost = '$remotehost' where id = '$editid'";
   mysql_query($cmd) or die("could not update");
   $logtxt = "List $textlist settings saved.";
   if($chglist) $logtxt = "List saved.";
@@ -312,8 +312,8 @@ if(!$demo){
  $listnum++;
  $xmails = explode(';',$adminmail); $adminmail = $xmails[0];
  $dom = getdomain();
- $cmd2 = "insert into $ltable values('null','$listnum','New List','news@$dom','New List Newsletter','Welcome!','Welcome to the mailing list!','','','1','Please verify your subscription','Click the link below to verify your email address for subscription to the yoursite.com newsletter\n\n!confirm','','','0','Confirmation Reminder','You subscribed to our list but did not respond to our confirmation email.  We hope you are still interested in joining us!\n\nPlease confirm your subscription to our mailing list by clicking the link below:\n\n!confirm\n\nThank you!','','','0','1;7','','', '','','','','','','','','','','0;0;0;0;0','$adminmail','0;1;0','1','1',';;;;100;;1;1;0')";
- mysql_query($cmd2);
+ $cmd2 = "insert into $ltable values('null','$listnum','New List','news@$dom','New List Newsletter','Welcome!','Welcome to the mailing list!','','','1','Please verify your subscription','Click the link below to verify your email address for subscription to the yoursite.com newsletter\n\n!confirm','','','0','Confirmation Reminder','You subscribed to our list but did not respond to our confirmation email.  We hope you are still interested in joining us!\n\nPlease confirm your subscription to our mailing list by clicking the link below:\n\n!confirm\n\nThank you!','','','0','1;7','','', '','','','','','','','','','','0;0;0;0;0','$adminmail','0;1;0','1','1',';;;;100;;1;1;0',0,'','','')";
+ mysql_query($cmd2) or die(mysql_error());; 
  $logtxt = "New list created.";
  $list = $listnum;
  $doadd='';
@@ -570,9 +570,9 @@ if(!$getcode){
 
 // main page
 adminheader('LM: Mail List Edit',"List $list Settings",'');
-    $cmd = "select id,listnum,title,sende,sendn,welsubj,welcom,welcht,welcf,welcact,cnfsubj,cnfmesg,cnfht,cnff,cnfact,remsubj,remmsg,remht,remf,remact,remopts,req1,req2,field1,field2,field3,field4,field5,field6,field7,field8,field9,field10,notifs,nmails,listopts,chtmlid,errorid,addopts from $ltable where listnum = '$list'";
+    $cmd = "select id,listnum,title,sende,sendn,welsubj,welcom,welcht,welcf,welcact,cnfsubj,cnfmesg,cnfht,cnff,cnfact,remsubj,remmsg,remht,remf,remact,remopts,req1,req2,field1,field2,field3,field4,field5,field6,field7,field8,field9,field10,notifs,nmails,listopts,chtmlid,errorid,addopts,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$list'";
     $result = mysql_query($cmd) or die(mysql_error());
-    list($id,$listnum,$title,$sende,$sendn,$welsubj,$welcom,$welcht,$welcf,$welcact,$cnfsubj,$cnfmesg,$cnfht,$cnff,$cnfact,$remsubj,$remmsg,$remht,$remf,$remact,$remopts,$req1,$req2,$f1,$f2,$f3,$f4,$f5,$f6,$f7,$f8,$f9,$f10,$notifs,$nmails,$listopts,$cid,$eid,$addopts) = @mysql_fetch_row($result);
+    list($id,$listnum,$title,$sende,$sendn,$welsubj,$welcom,$welcht,$welcf,$welcact,$cnfsubj,$cnfmesg,$cnfht,$cnff,$cnfact,$remsubj,$remmsg,$remht,$remf,$remact,$remopts,$req1,$req2,$f1,$f2,$f3,$f4,$f5,$f6,$f7,$f8,$f9,$f10,$notifs,$nmails,$listopts,$cid,$eid,$addopts,$remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = @mysql_fetch_row($result);
 if($req1==1) $req1chk = ' checked'; else $req1chk = '';
 if($req2==1) $req2chk = ' checked'; else $req2chk = '';
 
@@ -613,6 +613,8 @@ if($xnotifs[1]==1) $n2check = ' checked'; else $n2check = '';
 if($xnotifs[2]==1) $n3check = ' checked'; else $n3check = '';
 if($xnotifs[3]==1) $n4check = ' checked'; else $n4check = '';
 if($xnotifs[4]==1) $n5check = ' checked'; else $n5check = '';
+
+if($remote=='1') $remote = ' checked'; else $remote = '';
 
 
 echo "<table width=760 border=0 cellspacing=0 cellpadding=0>
@@ -1013,7 +1015,47 @@ echo "</select><br>
 </table>
 
     <!-- end notifs -->
-    
+    <!-- remote/local list settings -->
+
+<img src=1.gif height=4><br>
+<table class=outer_table width=100% border=0 cellspacing=0 cellpadding=0>
+ <tr>
+  <td class=table_head_bg>
+    <table width=100% border=0 cellspacing=0 cellpadding=0><tr><td><span class=table_head_text>Remote Listing Options</span></td><td align=right><a class=table_head_help href=\"javascript:void(0)\" onmouseover=\"window.status='Help'; return true;\" onmouseout=\"window.status=''; return true;\" onclick=\"popitup('".helplink('list_settings')."');\">Help</a><br></td></tr></table>
+  </td>
+ </tr>
+ <tr>
+  <td bgcolor=#eeeeee>
+   <!-- pad -->
+   <table width=100% border=0 cellspacing=0 cellpadding=3>
+   <tr><td><img src=1.gif height=1><br>
+    <table width=100% border=0 cellspacing=0 cellpadding=0>
+     <tr>
+      <td>
+       <img src=1.gif height=1><br>
+       <img src=1.gif width=5><input name=remote type=checkbox style=\"width: 13px\" value=1". $remote ."><img src=1.gif width=7><span class=table_inside_small>Store this list on a remote host</span><br>
+      </td>
+        <td><img src=1.gif height=1><br>
+            <img src=1.gif width=5><span class=table_inside_small>Remote host address: <input type=text class=xbox name=remotehost value=\"".htmlspecialchars($remotehost)."\" size=30 style=\"\">
+        </td>
+     </tr>
+     <tr>
+        <td colspan=2><img src=1.gif height=1><br>
+            <img src=1.gif width=5><span class=table_inside_small>Remote host database: <input type=text class=xbox name=remotedb value=\"".htmlspecialchars($remotedb)."\" size=30 style=\"\">
+        </td>
+     </tr>
+     <tr>
+        <td><img src=1.gif height=1><br>
+       <img src=1.gif width=5><span class=table_inside_small>Remote host username: <input type=text class=xbox name=remoteuser value=\"".htmlspecialchars($remoteuser)."\" size=20 style=\"\"></td>
+        <td><span class=table_inside_small>Remote host password: <input type=text class=xbox type=password name=remotepwd value=\"".htmlspecialchars($remotepwd)."\" size=20 style=\"\"></td>
+     </tr>
+    </table>
+   </td></tr></table>
+  </td>
+ </tr>
+</table>
+
+    <!-- end remote/local list settings -->
 
     <img src=1.gif height=3><br>
    <table width=100% border=0 bordercolor=#dddddd cellspacing=0 cellpadding=0>

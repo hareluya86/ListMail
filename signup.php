@@ -191,8 +191,12 @@ if(count($oklists)==0 || $errorout){
 }
 
 while(list($key,$list)=each($oklists)){
- list($welcact,$cnfact) = @mysql_fetch_row(mysql_query("select welcact,cnfact from $ltable where listnum = '$list'"));
-
+ list($welcact,$cnfact,$remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = @mysql_fetch_row(mysql_query("select welcact,cnfact,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$list'"));
+ if($remote){
+     mysql_connect($remotehost,$remoteuser,$remotepwd) or die(mysql_error());
+     mysql_select_db($remotedb);
+ }
+ //$u
  // allow customizing seq and delay on signup form
  if($seq && is_numeric($seq) && $seq > 0 && $del && is_numeric($del) && $del >= 0){
   $userseq = $seq;
