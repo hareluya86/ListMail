@@ -598,10 +598,33 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
         return $inarr;
 
     if (!$pre) {
+        // get list title before getting user info
+        $cmd = "select title,remote,remotedb,remoteuser,remotehost from $ltable where listnum = '$lnum'";
+        $lrow = @mysql_query($cmd, $link) or die('admin-6-' . mysql_error());
+        if ($sqldebug)
+            echo "CMD=<b>$cmd</b><br>";
+        list($ltitle,$remote,$remotedb,$remoteuser,$remotehost) = @mysql_fetch_row($lrow);
+    } else
+        $ltitle = 'Preview List';
+    
+    if (!$pre) {
         // get user info
         $cmd = "select id,uid,list,fname,lname,email,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,dateadd,ipaddr,refurl from $utable where id = '$uid'";
-        $urow = mysql_query($cmd, $link) or die('admin-5-' . mysql_error());
-        list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = mysql_fetch_row($urow);
+        
+        if($remote){
+            try {
+                $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                $dbh_query = $dbh->query($cmd);
+            } catch (PDOException $e) {
+                die('admin-5-' . $e->getMessage());
+            }
+            list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = $dbh_query->fetch();
+            $dbh = null; //close the connection
+        }else{
+            $urow = mysql_query($cmd, $link) or die('admin-5-' . mysql_error());
+            list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = mysql_fetch_row($urow);
+        }
     } else {
         $usid = 'preview';
         $lnum = 'X';
@@ -622,17 +645,7 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
         $uip = '0.0.0.0';
         $refu = 'http://' . getdomain() . '/preview_signup.html';
     }
-
-    if (!$pre) {
-        // get list title
-        $cmd = "select title from $ltable where listnum = '$lnum'";
-        $lrow = @mysql_query($cmd, $link) or die('admin-6-' . mysql_error());
-        if ($sqldebug)
-            echo "CMD=<b>$cmd</b><br>";
-        list($ltitle) = @mysql_fetch_row($lrow);
-    } else
-        $ltitle = 'Preview List';
-
+    
     while (list($k, $v) = each($inarr)) {
         if ($v) {
             $xmsg = $v;
@@ -780,6 +793,316 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
                                     $rtext = $data1 . "\n"; else
                                     $rtext = '';
                                 $rtext .= $lmpath . "confirm.php?u=$usid";
+                            }
+                            $xmsg = eregi_replace($keych . $ref, $rtext, $xmsg);
+                            break;
+
+                        case 'date' :
+                            $today = date($data1, mktime($dar[0], $dar[1], $dar[2], $dar[3] + $data3, $dar[4] + $data2, $dar[5] + $data4));
+                            $xmsg = eregi_replace($keych . $ref, $today, $xmsg);
+                            break;
+
+                        case 'dateadd' :
+                            list($y, $m, $d) = dateparse($dadd, 'break');
+                            $xdadd = date($data1, mktime(0, 0, 0, $m + $data3, $d + $data2, $y + $data4));
+                            $xmsg = eregi_replace($keych . $ref, $xdadd, $xmsg);
+                            break;
+
+                        case 'title' :
+                            $xmsg = eregi_replace($keych . $ref, $ltitle, $xmsg);
+                            break;
+
+                        case 'uid' :
+                            $xmsg = eregi_replace($keych . $ref, $usid, $xmsg);
+                            break;
+
+                        /* case 'field2' :
+                          $xmsg = eregi_replace($keych . $ref,$user2,$xmsg);
+                          break; */
+
+                        case (substr($typ, 0, 5) == 'field'):
+                            $fnum = substr($typ, 5, 2);
+                            if (!${"user" . $fnum} && $data1)
+                                ${"user" . $fnum} = $data1;
+                            if ($mhtml == '1') {
+                                ${"user" . $fnum} = str_replace("\r\n", "\n", ${"user" . $fnum});
+                                ${"user" . $fnum} = str_replace("\n", "<br>", ${"user" . $fnum});
+                                $xmsg = eregi_replace($keych . $ref, ${"user" . $fnum}, $xmsg);
+                            } else {
+                                $xmsg = eregi_replace($keych . $ref, ${"user" . $fnum}, $xmsg);
+                            }
+                            break;
+
+                        case 'ip' :
+                            $xmsg = eregi_replace($keych . $ref, $uip, $xmsg);
+                            break;
+
+                        case 'refurl' :
+                            $xmsg = eregi_replace($keych . $ref, $refu, $xmsg);
+                            break;
+
+                        case 'link2html':
+                            if ($mhtml == '1') {
+                                if ($data1)
+                                    $rtext = $data1 . "<br>"; else
+                                    $rtext = '';
+                                $rtext .= "<a class=link2html href=\"" . $lmpath . "showpage.php?u=$usid&m=$mtyp$mid\">$data2</a><br>";
+                            } else {
+                                if ($data1)
+                                    $rtext = $data1 . "\n"; else
+                                    $rtext = '';
+                                $rtext .= $lmpath . "showpage.php?u=$usid&m=$mtyp$mid";
+                            }
+                            $xmsg = eregi_replace($keych . $ref, $rtext, $xmsg);
+                            break;
+
+                        case 'numsubs' :
+                            list($nsu) = mysql_fetch_row(mysql_query("select count(*) from $utable where list = '$lnum';"));
+                            if ($data1 && is_numeric($data1))
+                                $nsu = $nsu + $data1;
+                            $xmsg = eregi_replace($keych . $ref, "$nsu", $xmsg);
+                            break;
+                        // end switch
+                    }
+                // no if ref closing bracket
+                // end message code database
+                // word wrap
+                /* if($mhtml==0){
+                  $cmd="select wrapon,wrapcols from $ctable where 1";
+                  $wraprow=mysql_query($cmd,$link);
+                  if($sqldebug) echo "CMD=<b>$cmd</b><br>";
+                  while(list($wrapon,$wrapcols) = @mysql_fetch_row($wraprow)){
+                  if($wrapon==1){ $xmsg = wordwrap($xmsg,$wrapcols);  }
+                  }
+                  } */
+
+                // ^^ removed
+                // $xmsg = str_replace("\r","\\r",str_replace("\n","\\n\n",$xmsg));
+                // echo "<textarea rows=20 cols=50>$xmsg</textarea>";
+                $outarr[$k] = $xmsg;
+            } // end each msg while
+        } // if v
+    } // msgwhile
+
+    return $outarr;
+}
+
+function processmsg2($id, $usid,$lnum, $fname, $lname, $email,$refu,$uip,$user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '', $mid = '', $r = '') {
+    global $dtable;
+    global $ktable;
+    global $utable;
+    global $ltable;
+    global $ctable;
+    global $link;
+    global $dar;
+    if ($id == 'preview')
+        $pre = 1; else
+        $pre = '';
+    $prow = mysql_query("select linkcode,keycode,listmailpath,ktrack from $ctable where 1", $link) or die('admin-4-' . mysql_error());
+    list($linkch, $keych, $lmpath, $ktr) = mysql_fetch_row($prow);
+    $inarr = array($subj, $msg, $htmsg);
+
+    if (!$id && !$pre)
+        return $inarr;
+    
+    if (!$pre) {
+        // get list title before getting user info
+        $cmd = "select title,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$lnum'";
+        $lrow = @mysql_query($cmd, $link) or die('admin-6-' . mysql_error());
+        if ($sqldebug)
+            echo "CMD=<b>$cmd</b><br>";
+        list($ltitle,$remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = @mysql_fetch_row($lrow);
+    } else
+        $ltitle = 'Preview List';
+    
+    if (!$pre) {
+        // get user info
+        /*$cmd = "select id,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,dateadd,ipaddr,refurl from $utable where id = '$id'";
+        
+        if($remote){
+            try {
+                $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                echo 'Connected with PDO!';
+                $dbh_query = $dbh->query($cmd);
+            } catch (PDOException $e) {
+                die('admin-5-' . $e->getMessage());
+            }
+            list($id, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = $dbh_query->fetch();
+            echo 'listnum='.$lnum;
+        }else{
+            $urow = mysql_query($cmd, $link) or die('admin-5-' . mysql_error());
+            list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = mysql_fetch_row($urow);
+        }*/
+    
+    } else {
+        $usid = 'preview';
+        $lnum = 'X';
+        $fname = 'FIRSTNAME';
+        $lname = 'LASTNAME';
+        $email = 'preview@' . getdomain();
+        $user1 = 'CUSTOM1';
+        $user2 = 'CUSTOM2';
+        $user3 = 'CUSTOM3';
+        $user4 = 'CUSTOM4';
+        $user5 = 'CUSTOM5';
+        $user6 = 'CUSTOM6';
+        $user7 = 'CUSTOM7';
+        $user8 = 'CUSTOM8';
+        $user9 = 'CUSTOM9';
+        $user10 = 'CUSTOM10';
+        $dadd = date("Y-m-d");
+        $uip = '0.0.0.0';
+        $refu = 'http://' . getdomain() . '/preview_signup.html';
+    }
+    
+    while (list($k, $v) = each($inarr)) {
+        if ($v) {
+            $xmsg = $v;
+            if ($k == 2)
+                $mhtml = 1; else
+                $mhtml = 0;
+
+            if (!$pre) {
+                // custom text
+                $drows = @mysql_query("select ref,typ,data1,data2 from $dtable where (list = '$lnum' or list = '0') and typ = 'text' order by list desc,ref") or die('admin-7-' . mysql_error());
+                if (@mysql_num_rows($drows) > 0) {
+                    while (list($ref, $typ, $data1, $data2) = @mysql_fetch_row($drows)) {
+                        if ($mhtml == '1') {
+                            $data1 = str_replace("\r\n", "\n", $data1);
+                            if ($data2 <> '1')
+                                $data1 = str_replace("\n", "<br>", $data1);
+                            $xmsg = eregi_replace($keych . $ref, $data1, $xmsg);
+                        } else {
+                            $xmsg = eregi_replace($keych . $ref, $data1, $xmsg);
+                        }
+                    }
+                }
+            }
+
+            // links
+            $cmd = "select refcode,title from $ktable where 1 order by refcode desc";
+            $result = mysql_query($cmd, $link) or die('admin-8-' . mysql_error());
+            if ($sqldebug)
+                echo "CMD=<b>$cmd</b><br>";
+            if ($sqldebug)
+                echo "CMD=<b>$cmd</b><br>";
+            while (list($refcode, $ktitle) = @mysql_fetch_row($result)) {
+                if ($refcode <> '') {
+                    if ($mhtml == '1') {
+                        // html msg
+                        if ($ktr == 1) {
+                            $xmsg = eregi_replace($keych . $linkch . $refcode, "<a class=codelink href=\"" . $lmpath . "link.php?id=" . $usid . $refcode . "\">" . $ktitle . "</a>", $xmsg);
+                        } else {
+                            $xmsg = eregi_replace($keych . $linkch . $refcode, "<a class=codelink href=\"" . $lmpath . "link.php?id=" . $refcode . "\">" . $ktitle . "</a>", $xmsg);
+                        }
+                    } else {
+                        // not an html msg
+                        if ($ktr == 1) {
+                            $xmsg = eregi_replace($keych . $linkch . $refcode, $lmpath . "link.php?id=" . $usid . $refcode, $xmsg);
+                        } else {
+                            $xmsg = eregi_replace($keych . $linkch . $refcode, $lmpath . "link.php?id=" . $refcode, $xmsg);
+                        }
+                    }
+                }
+            }
+            // done links
+            // message codes
+            $cmd = "select id,ref,typ,data1,data2,data3,data4,data5 from $dtable where (list = '$lnum' or list = '0') and typ <> 'text' order by list desc,ref";
+            $drows = @mysql_query($cmd, $link) or die('admin-9-' . mysql_error());
+            if ($sqldebug)
+                echo "CMD=<b>$cmd</b><br>";
+            while (list($cid, $ref, $typ, $data1, $data2, $data3, $data4, $data5) = @mysql_fetch_row($drows)) {
+                // process each code
+                if ($ref)
+                    switch ($typ) {
+                        // fname,lname,fullname,remove,text,date,user1-10
+
+                        case 'fname' :
+                            if (!$fname && $data1)
+                                $fname = $data1;
+                            if ($data2)
+                                $fname = capitalize($fname);
+                            $xmsg = eregi_replace($keych . $ref, $fname, $xmsg);
+                            break;
+
+                        case 'lname' :
+                            if (!$lname && $data1)
+                                $lname = $data1;
+                            if ($data2)
+                                $lname = capitalize($lname);
+                            $xmsg = eregi_replace($keych . $ref, $lname, $xmsg);
+                            break;
+
+                        case 'fullname' :
+                            $fullname = $fname;
+                            if ($lname)
+                                $fullname .= " " . $lname;
+                            if ($data2)
+                                $fullname = capitalize($fullname);
+                            if (!$fullname && $data1)
+                                $fullname = $data1;
+                            $xmsg = eregi_replace($keych . $ref, $fullname, $xmsg);
+                            break;
+
+                        case 'email' :
+                            $xmsg = eregi_replace($keych . $ref, $email, $xmsg);
+                            break;
+
+                        case 'remove' :
+                            if ($data4)
+                                $c = '&c=' . $cid;
+                            $rlink = $lmpath . "rem.php?";
+                            if ($data5 == '1' || !$data5)
+                                $rlink .= "u=$usid";
+                            if ($data5 == '2')
+                                $rlink .= "c=$cid&u=$usid";
+                            if ($data5 == '3')
+                                $rlink .= "u=$cid,$usid";
+                            if ($data5 == '4')
+                                $rlink .= "x=$cid&l=$lnum&e=$email";
+                            if ($data5 == '5')
+                                $rlink .= "x=$cid,$lnum,$email";
+
+                            if ($mhtml == '1') {
+                                if ($data1)
+                                    $rtext = $data1 . "<br>"; else
+                                    $rtext = '';
+                                $rtext .= "<a class=coderem href=\"$rlink\">$data2</a>";
+                            } else {
+
+                                if ($data1)
+                                    $rtext = $data1 . "\n"; else
+                                    $rtext = '';
+                                $rtext .= $rlink;
+                            }
+                            $xmsg = eregi_replace($keych . $ref, $rtext, $xmsg);
+                            break;
+
+                        case 'remcnfht' :
+                            $bcode = "<form name=rconf method=post>
+<input type=hidden name=list value=$list>
+<input type=hidden name=dodel value=1>
+<input type=hidden name=u value=$usid>
+<input type=hidden name=r value=$r>
+<input type=hidden name=c value=" . htmlspecialchars($mid) . ">
+<input class=confirm_button type=submit value=\"$data1\">
+</form>\n";
+                            $xmsg = eregi_replace($keych . $ref, $bcode, $xmsg);
+                            break;
+
+                        case 'confirm' :
+                            if ($mhtml == '1') {
+                                if ($data1)
+                                    $rtext = $data1 . "<br>"; else
+                                    $rtext = '';
+                                $rtext .= "<a class=coderem href=\"" . $lmpath . "confirm.php?u=$usid&l=$lnum\">$data2</a>";
+                            } else {
+
+                                if ($data1)
+                                    $rtext = $data1 . "\n"; else
+                                    $rtext = '';
+                                $rtext .= $lmpath . "confirm.php?u=$usid&l=$lnum";
                             }
                             $xmsg = eregi_replace($keych . $ref, $rtext, $xmsg);
                             break;
@@ -2938,7 +3261,8 @@ function senddate() {
 }
 
 //At this point, the user has already been inserted
-function sendwelcome($userid) {
+// $list is required because there are remote lists which requires connection to other database
+function sendwelcome($userid,$list) {
     global $ctable;
     global $ltable;
     global $utable;
@@ -2950,10 +3274,33 @@ function sendwelcome($userid) {
     global $mp;
     global $otable;
     require_once($mp . '/mimeclass.php');
+    
+    // get list settings
+    $lcmd = "select title,sendn,sende,welcact,cnfact,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$list' limit 0,1";
+    $lresult = mysql_query($lcmd, $link) or die('admin-41-' . mysql_error());
+    list($title, $sendn, $sende, $welcact, $cnfact, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = @mysql_fetch_row($lresult);
 
-    // start setting up
-    $urow = mysql_query("select uid,fname,lname,cnf,list,email,htmail,user2 from $utable where id = '$userid'", $link) or die('admin-39-' . mysql_error());
-    list($unid, $fname, $lname, $cnf, $list, $email, $htmail, $user2) = mysql_fetch_row($urow);
+    $date = senddate();
+
+    // retreiving user info
+    //$cmd = "select uid,fname,lname,cnf,list,email,htmail,user2 from $utable where id = '$userid'";
+    $cmd = "select id,uid,list,fname,lname,email,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,cseq,cdel,cnf,dateadd,ipaddr,refurl,htmail,bounces from $utable where id = '$userid'";
+    if($remote){
+        try {
+            $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+            $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+        } catch (PDOException $e) {
+            die('admin-39-' . $e->getMessage());
+        }
+        $dbh_query = $dbh->query($cmd);
+        //list($unid, $fname, $lname, $cnf, $list, $email, $htmail, $user2) = $dbh_query->fetch(); //assuming there will only be 1 unique userid
+        list($unid,$uid,$list,$fname,$lname,$email,$user1,$user2,$user3,$user4,$user5,$user6,$user7,$user8,$user9,$user10,$cseq,$cdel,$cnf,$dateadd,$ipaddr,$refurl,$htmail,$bounces)= $dbh_query->fetch();
+        $dbh = null; //close the connection
+    }else{
+        $urow = mysql_query($cmd, $link) or die('admin-39-' . mysql_error());
+        list($unid,$uid,$list,$fname,$lname,$email,$user1,$user2,$user3,$user4,$user5,$user6,$user7,$user8,$user9,$user10,$cseq,$cdel,$cnf,$dateadd,$ipaddr,$refurl,$htmail,$bounces) = mysql_fetch_row($urow);
+    }
+    
 
     // build full name
     $fulln = $fname;
@@ -2977,13 +3324,6 @@ function sendwelcome($userid) {
     $smtpsend = $smtpoptions[0];
     $smtplog = $smtpoptions[1];
 
-    // get list settings
-    $lcmd = "select title,sendn,sende,welcact,cnfact from $ltable where listnum = '$list' limit 0,1";
-    $lresult = mysql_query($lcmd, $link) or die('admin-41-' . mysql_error());
-    list($title, $sendn, $sende, $welcact, $cnfact) = @mysql_fetch_row($lresult);
-
-    $date = senddate();
-
     // set up vars
     if ($cnf == '1') {
         $f1 = 'welsubj';
@@ -3006,7 +3346,19 @@ function sendwelcome($userid) {
     // set up confirm message
     if ($cnf == '0') {
         // confirm
-        @mysql_query("update $utable set cnf = '0' where id = '$id'", $link) or die('admin-43-' . mysql_error());
+        $cmd = "update $utable set cnf = '0' where id = '$id'";
+        if($remote){
+            try {
+                $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                $dbh->exec($cmd);
+            } catch (PDOException $e) {
+                die('admin-43-' . $e->getMessage());
+            }
+            $dbh = null; //close the connection
+        }else{
+            @mysql_query($cmd, $link) or die('admin-43-' . mysql_error());
+        }
         /*
           $cstr = $lmpath . "confirm.php?u=" . $unid;
           $ctest = strpos($msg,"!confirm");
@@ -3033,9 +3385,10 @@ function sendwelcome($userid) {
         $logtxt .= " Welcome message sent!";
         $xtxt .= "<br>Welcome message sent.";
     }
-
-    list($xsubj, $xmsg, $xhtmsg) = processmsg($userid, $subj, $msg, $htmsg, '0', $typ, $list);
-
+    //list($xsubj, $xmsg, $xhtmsg) = processmsg($userid, $subj, $msg, $htmsg, '0', $typ, $list);
+    list($xsubj, $xmsg, $xhtmsg) = processmsg2($userid, $uid,$list, $fname, $lname, $email,$refurl,$ipaddr,$user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $subj, $msg, $htmsg, '0', $typ, $list);
+    //from above code list($unid,$uid,$list,$fname,$lname,$email,$user1,$user2,$user3,$user4,$user5,$user6,$user7,$user8,$user9,$user10,$cseq,$cdel,$cnf,$dateadd,$ipaddr,$refurl,$htmail,$bounces)= $dbh_query->fetch();$subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '', $mid = '', $r = ''
+    //in processmsg2 list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = mysql_fetch_row($urow);
     // $xsubj = processmsg($userid,$subj,'0',$typ,$list);
     // $xmsg = processmsg($userid,$msg,'0',$typ,$list);
 

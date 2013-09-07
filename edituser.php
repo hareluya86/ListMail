@@ -117,7 +117,7 @@ if($edit){
    $add = '';
    $added = 1;
    if($welcmail || $cnfmail){
-    sendwelcome($id);
+    sendwelcome($id,$ulist);
     if($welcmail) $logtxt .= " Welcome message sent."; else $logtxt .= " Confirmation message sent.";
    }
    if(!$cnfmail && $xtrmail && file_exists('./signup-xtra.php')){

@@ -15,7 +15,17 @@ include("./admin.php");
 // $DEBUG = 1;
 
 // echo "list=$list<br>lists=$lists<br>cgi=$cgi<br>";
-
+list($remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = @mysql_fetch_row(mysql_query("select remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$list'"));
+$dbh = '';
+if($remote){
+    try {
+        $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+     } catch (PDOException $e) {
+        echo 'Connection failed: ' . $e->getMessage();
+        exit();
+     }
+}
 if($list && !$lists && !$cgi){
  $lists = array();
  $lists[0] = $list;
@@ -122,12 +132,63 @@ while(list($key,$list)=each($lists)){
 }
 reset($lists);
 
+while(list($key,$list)=each($lists)){
+    if(!$allowdupes && !$allow_dupes){
+        $cmd = "select id,uid,cnf from $utable where list = '$list' and email like '".addslashes($email)."';";
+        if($remote){
+            $pdo_query = $dbh->query($cmd);
+            $pdo_num_results = $pdo_query->rowCount();
+            if($pdo_num_results > 0){
+                header("Location: http://www.airnavsystems.com/downhere.html"); //hard-coded stuff...
+                die();
+            }
+        }else{
+            $result = mysql_query($cmd);
+            if(mysql_num_rows($result)>0){
+                list($xid,$xuid,$xcnf)=mysql_fetch_row($result);
+                if($xcnf<>'1'){
+                    // overwrite
+                    $uids[$list] = $xuid;
+                } else {
+                    if($overwrite_dupes || $overwritedupes){
+                        // overwrite
+                        $uids[$list] = $xuid;
+                    } else {
+                        $dupes[$list] = 1;
+                        if(!in_array($list,$badlists)) $badlists[] = $list;
+                    }
+                }
+            }
+        }
+    }else{
+        $dupes[$list] = false;
+    }
+}
+reset($lists);
 // check dupes
+/* Original code
+ * 
+ *
 while(list($key,$list)=each($lists)){
  if(!$allowdupes && !$allow_dupes){
   // check for duplicates
+  echo 'Allow dupes = '.$allowdupes;
   $cmd = "select id,uid,cnf from $utable where list = '$list' and email like '".addslashes($email)."';";
-  $result = mysql_query($cmd);
+  if($remote){
+      try {
+        $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+        echo 'Connected with PDO!';
+     } catch (PDOException $e) {
+        echo 'Connection failed: ' . $e->getMessage();
+     }
+     $dbh->query("use $remotedb") or die($dbh->errorInfo());
+     $result = $dbh->exec($cmd);
+  }
+  else{
+      $result = mysql_query($cmd);
+  }
+  
   if(mysql_num_rows($result)>0){
    list($xid,$xuid,$xcnf)=mysql_fetch_row($result);
    if($xcnf<>'1'){
@@ -148,6 +209,8 @@ while(list($key,$list)=each($lists)){
  }
 }
 reset($lists);
+ * 
+ */
 
 // do oklists
 while(list($key,$list)=each($lists)){
@@ -191,11 +254,7 @@ if(count($oklists)==0 || $errorout){
 }
 
 while(list($key,$list)=each($oklists)){
- list($welcact,$cnfact,$remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = @mysql_fetch_row(mysql_query("select welcact,cnfact,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$list'"));
- if($remote){
-     mysql_connect($remotehost,$remoteuser,$remotepwd) or die(mysql_error());
-     mysql_select_db($remotedb);
- }
+ list($welcact,$cnfact) = @mysql_fetch_row(mysql_query("select welcact,cnfact from $ltable where listnum = '$list'"));
  //$u
  // allow customizing seq and delay on signup form
  if($seq && is_numeric($seq) && $seq > 0 && $del && is_numeric($del) && $del >= 0){
@@ -225,7 +284,14 @@ while(list($key,$list)=each($oklists)){
   $uniq = '';
   while(!$uniq){
    $uid = unique_id(7);
-   if(@mysql_num_rows(mysql_query("select id from $utable where uid = '$uid'",$link))==0) $uniq=1;
+   if($remote){
+     $dbh->query("use $remotedb") or die($dbh->errorInfo());
+     $dbhresult = $dbh->exec("select id from $utable where uid = '$uid'");  
+     if($dbhresult == 0) $uniq=1;
+   }
+   else{
+       if(@mysql_num_rows(mysql_query("select id from $utable where uid = '$uid'",$link))==0) $uniq=1;
+   }
   }
  } else $uid = $uids[$list];
 
@@ -242,17 +308,33 @@ while(list($key,$list)=each($oklists)){
   // echo "deleted rows.. ".mysql_affected_rows()."..<br>";
  }
  
- $cmd = "INSERT INTO $utable VALUES ('null','$uid','$list','$fname','$lname','$email','$user1','$user2','$user3','$user4','$user5','$user6','$user7','$user8','$user9','$user10','$userseq','$userdel','$confirmed','$today','$ipaddr','$refurl','$html','0');";
- 
- mysql_query($cmd) or die("Database error while inserting..");
- $userid = mysql_insert_id();
+ $cmd = "INSERT INTO $utable VALUES (NULL,'$uid','$list','$fname','$lname','$email','$user1','$user2','$user3','$user4','$user5','$user6','$user7','$user8','$user9','$user10','$userseq','$userdel','$confirmed','$today','$ipaddr','$refurl','$html','0');";
+ if($remote){ //open connection to remote host
+     try {
+        $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+     } catch (PDOException $e) {
+        echo 'Connection failed: ' . $e->getMessage();
+        exit();
+     }
+     $dbh->query("use $remotedb") or die($dbh->errorInfo());
+     $dbh->exec($cmd) or die($dbh->errorInfo());
+     $userid = $dbh->lastInsertId();
+     $dbh = null; //Close the connection
+ }
+ else{
+     mysql_query($cmd) or die("Database error while inserting..".mysql_error());
+     $userid = mysql_insert_id();
+ }
+
+
  if($key==0) $chuserid = $userid;
  $listopts = getlistopts($list);
  if($listopts[2]=='1') $rem_lists[] = $list;
  if($listopts[3]=='1') $add_lists[] = $list;
 
  if($cnfact=='1' || ($cnfact<>'1' && $welcact == '1')){
-  sendwelcome($userid);
+  sendwelcome($userid,$list);
  }
 
  // admin notification (welcome only)
