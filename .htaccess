@@ -1,0 +1,3 @@
+# disable directory browsing
+        
+Options ExecCGI Includes IncludesNOEXEC SymLinksIfOwnerMatch -Indexes

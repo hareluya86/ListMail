@@ -66,11 +66,28 @@ if ($sendit || $resume){
    $cmd = make_rquery('send',$tors);
   }
   $sqlerror = '';
-  $urows = mysql_query($cmd) or $sqlerror = mysql_error();
-  $numsent = @mysql_num_rows($urows);
-
+  // Check if remote
+    $remotecmd = "select remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where id=$tolist";
+    $result = mysql_query($remotecmd) or die(mysql_error());
+    list($remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = mysql_fetch_row($result);
+    if($remote){
+        try {
+            $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+            $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+            $dbh_query = $dbh->query($cmd);echo $cmd.'<br>';//debug
+        } catch (PDOException $e) {
+            die('domail-' . $e->getMessage());
+        }
+        $sendtousers = $dbh_query; //Store for later use
+        $numsent = $sendtousers->rowCount();echo $numsent.'<br>';//debug
+        $urows = $sendtousers;
+    }else{
+        $urows = mysql_query($cmd) or $sqlerror = mysql_error();
+        $numsent = @mysql_num_rows($urows);
+    }
+    
   $cmd = "insert into $ttable values('','".addslashes($txtsubj)."','".addslashes($txtcont)."','".addslashes($txthtcont)."','".addslashes($txtfatt)."','".date("Y-m-d H:i:s")."','1','$numsent','".addslashes($tolist)."')";
-  @mysql_query($cmd);
+  @mysql_query($cmd);echo $cmd.'<br>';//debug
   if($sqldebug) echo "CMD=<b>$cmd</b><br>";
   $msgid = mysql_insert_id();
 
@@ -81,9 +98,12 @@ if ($sendit || $resume){
    
   }  
   // insert into sendq
-  while(list($em,$uid) = @mysql_fetch_row($urows)){
+  //while(list($em,$uid) = @mysql_fetch_row($urows)){
+  while(list($em,$uid) = $dbh_query->fetch()){
+      echo 'uid='.$uid;
    $xid = calc32();
-   $cmd = "insert into $otable(id,bat,battype,mtype,uid,mid) values('$xid','$batid','1','1','$uid','$msgid');";
+   $cmd = "insert into $otable(id,bat,battype,mtype,uid,lid,mid) values('$xid','$batid','1','1','$uid','$list','$msgid');";
+   echo $cmd.'<br>';//debug
    // echo "CMD=$cmd<br>";
    if($sqldebug) echo "CMD=<b>$cmd</b><br>";
    @mysql_query($cmd) or die(mysql_error());
@@ -97,6 +117,8 @@ if ($sendit || $resume){
  // end !resume
 
  if(!$resume){
+     echo 'batch id = '.$batid;//debug
+     echo 'msg id = '.$msgid;//debug
   $sentok = domail('','solo',$msgid,$batid);
  } elseif($resume){
   // check if this mailing was completed
