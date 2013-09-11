@@ -1800,7 +1800,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
         echo "CMD=<b>$cmd</b><br>";
 
     // display send box
-    $nmails = @mysql_num_rows($mrows);
+    $nmails = @mysql_num_rows($mrows);echo 'number of mails: '.$nmails;//debug
     $skipped = 0;
     $txsize = strlen($nmails);
     $timeleft = 0;
@@ -1834,31 +1834,36 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
             $skiptonext = '';
             $nouser = '';
             $error = '';
-            echo 'oid '.$oid.', uid='.$uid.', lid='.$lid;
+            echo 'oid '.$oid.', uid='.$uid.', lid='.$lid.', mtype='.$mtype.'<br>';//debug 
             if ($mtype <> '5') {
                 //Get list remote info
                 $lcmd = "select remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = $list";
+                echo $lcmd.'<br>';
                 $lrows = @mysql_query($lcmd);
                 list($remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = mysql_fetch_row($lrows);
+                echo 'remote='.$remote;//debug
                 // get user send vars
                 $ucmd = "select uid,list,fname,lname,email,htmail,bounces from $utable where id = '$uid'";
+                echo $ucmd.'<br>';//debug
                 if($remote){
                     try {
                         $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
-                        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd); echo 'connected to dbh!<br>';//debug
                     } catch (PDOException $e) {
                         die('admin-39-' . $e->getMessage());
                     }
-                    $dbh_query = $dbh->query($cmd);
-                    //list($unid, $fname, $lname, $cnf, $list, $email, $htmail, $user2) = $dbh_query->fetch(); //assuming there will only be 1 unique userid
-                    list($unid, $mlist, $fname, $lname, $email, $htmail, $bounces)= $dbh_query->fetch();
+                    $dbh_query = $dbh->query($ucmd);
+                    list($unid, $mlist, $fname, $lname, $email, $htmail, $bounces) = $dbh_query->fetch(); //assuming there will only be 1 unique userid
+                    $rcount = $dbh_query->rowCount();
+                    echo 'email: '.$email.'<br> rcount='.$rcount.'<br>';//debug
                     $dbh = null; //close the connection
                 }else{
-                    $urow = mysql_query($cmd, $link) or die('admin-39-' . mysql_error());
+                    $urow = mysql_query($ucmd, $link) or die('admin-17-' . mysql_error());
                     list($unid, $mlist, $fname, $lname, $email, $htmail, $bounces) = mysql_fetch_row($urow);
+                    $rcount = @mysql_num_rows($urow);
                 }
                 //$urow = mysql_query($ucmd) or die('admin-17-' . mysql_error());
-                if (@mysql_num_rows($urow) == 0) {
+                if ($rcount == 0) {
                     $nouser = 1;
                 } else {
                     $nouser = '';
@@ -1871,7 +1876,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                     // echo "UID=$uid UNID=$unid  EMAIL=$email<br>";
                 }
             } else
-                $nouser = '';
+                $nouser = '';echo 'nouser='.$nouser;//debug
 
             if (!$nouser) {
                 // get message
@@ -1881,6 +1886,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                     if ($sqldebug)
                         echo "CMD=<b>$cmd</b><br>";
                     list($subj, $msg, $htmsg, $fatt) = @mysql_fetch_row($msgrow);
+                    echo $subj.'<br>'.$msg.'<br>'.$htmsg.'<br>'.$fatt.'<br>';
                 }
                 if ($mtype == '2') {
                     // followup
@@ -1966,10 +1972,11 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                 } else {
                     // not admin msg, continue
                     $cmd = "select sendn,sende from $ltable where listnum = '$mlist'";
+                    echo $cmd.'<br>';//debug
                     $lrow = @mysql_query($cmd) or die('admin-25-' . mysql_error());
                     if ($sqldebug)
                         echo "CMD=<b>$cmd</b><br>";
-                    list($sendn, $sende) = @mysql_fetch_row($lrow);
+                    list($sendn, $sende) = @mysql_fetch_row($lrow);echo $sendn.' and '.$sende.'<br>';//debug
 //    echo "got list settings<br>"; flush();
                 }
 

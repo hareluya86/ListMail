@@ -79,12 +79,15 @@ if ($sendit || $resume){
             die('domail-' . $e->getMessage());
         }
         $sendtousers = $dbh_query; //Store for later use
-        $numsent = $sendtousers->rowCount();echo $numsent.'<br>';//debug
-        $urows = $sendtousers;
+        $urows = $sendtousers->fetchAll();
     }else{
-        $urows = mysql_query($cmd) or $sqlerror = mysql_error();
-        $numsent = @mysql_num_rows($urows);
+        $sendtousers = mysql_query($cmd) or $sqlerror = mysql_error();
+        $urows = array();
+        while($r = mysql_fetch_assoc($sendtousers)) {
+            $urows[$r['config_name']] = $r['config_value'];
+        }
     }
+    $numsent = count($urows);echo $numsent.'<br>';//debug
     
   $cmd = "insert into $ttable values('','".addslashes($txtsubj)."','".addslashes($txtcont)."','".addslashes($txthtcont)."','".addslashes($txtfatt)."','".date("Y-m-d H:i:s")."','1','$numsent','".addslashes($tolist)."')";
   @mysql_query($cmd);echo $cmd.'<br>';//debug
@@ -99,7 +102,7 @@ if ($sendit || $resume){
   }  
   // insert into sendq
   //while(list($em,$uid) = @mysql_fetch_row($urows)){
-  while(list($em,$uid) = $dbh_query->fetch()){
+  while(list($em,$uid) = $urows){//doesn't cater for local lists
       echo 'uid='.$uid;
    $xid = calc32();
    $cmd = "insert into $otable(id,bat,battype,mtype,uid,lid,mid) values('$xid','$batid','1','1','$uid','$list','$msgid');";
