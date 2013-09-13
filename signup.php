@@ -133,8 +133,9 @@ while(list($key,$list)=each($lists)){
 reset($lists);
 
 while(list($key,$list)=each($lists)){
-    if(!$allowdupes && !$allow_dupes){
+    if(!$allowdupes && !$allow_dupes){//default is don't allow duplicates
         $cmd = "select id,uid,cnf from $utable where list = '$list' and email like '".addslashes($email)."';";
+        //echo 'check if allow duplicates'.'<br>';//debug
         if($remote){
             $pdo_query = $dbh->query($cmd);
             $pdo_num_results = $pdo_query->rowCount();
@@ -159,7 +160,7 @@ while(list($key,$list)=each($lists)){
                     }
                 }
             }
-        }
+        }//echo 'exiting duplicate check..'.'<br>';//debug
     }else{
         $dupes[$list] = false;
     }
@@ -214,6 +215,7 @@ reset($lists);
 
 // do oklists
 while(list($key,$list)=each($lists)){
+    //echo 'entering oklists..'.'<br>';//debug
  if($closed[$list]) $errorout = 1;
  if($required[$list]) $errorout = 1;
  if(!$bademails[$list] && !$required[$list] && !$dupes[$list] && !$closed[$list]){
@@ -227,7 +229,9 @@ sort($badlists);
 if(count($oklists)==0 || $errorout){
  if(!$cgi){
   // get custom subscribe error page options
-  if($chtmlid && is_numeric($chtmlid)) $chid = $chtmlid;
+  if($chtmlid && is_numeric($chtmlid)){
+      $chid = $chtmlid; //echo 'chtmlid: '.$chtmlid.'<br>';//debug
+  }
   else {
    // get first badlist HTML
    $chid = listopts('chtmlid',$badlists[0]);
@@ -255,7 +259,8 @@ if(count($oklists)==0 || $errorout){
 
 while(list($key,$list)=each($oklists)){
  list($welcact,$cnfact) = @mysql_fetch_row(mysql_query("select welcact,cnfact from $ltable where listnum = '$list'"));
- //$u
+ //echo 'check list settings..'.'<br>';//debug
+//$u
  // allow customizing seq and delay on signup form
  if($seq && is_numeric($seq) && $seq > 0 && $del && is_numeric($del) && $del >= 0){
   $userseq = $seq;
@@ -279,7 +284,7 @@ while(list($key,$list)=each($oklists)){
  
  if($cnfact=='1') $confirmed = '0'; else $confirmed = '1';
  // removed unneeded $cnf = $cquery;
-
+//echo 'confirm:'.$confirmed.'<br>';//debug
  if(!$uids[$list]){
   $uniq = '';
   while(!$uniq){
@@ -288,6 +293,7 @@ while(list($key,$list)=each($oklists)){
      $dbh->query("use $remotedb") or die($dbh->errorInfo());
      $dbhresult = $dbh->exec("select id from $utable where uid = '$uid'");  
      if($dbhresult == 0) $uniq=1;
+     //echo 'Is list unique? '.$uniq.'<br>';//debug
    }
    else{
        if(@mysql_num_rows(mysql_query("select id from $utable where uid = '$uid'",$link))==0) $uniq=1;
@@ -303,7 +309,7 @@ while(list($key,$list)=each($oklists)){
   $added = 1;
  }
  
- if($uids[$list]){
+ if($uids[$list]){ //why?
   mysql_query("delete from $utable where uid = '".$uids[$list]."'") or die(mysql_error());
   // echo "deleted rows.. ".mysql_affected_rows()."..<br>";
  }
@@ -369,15 +375,22 @@ if($add_lists){
 
 // display custom success page (or confirm page)
 
-if(!$cgi){
- if($cnfact=='1') $confirmed = 'preconfirm'; else $confirmed = 'subscribe';
+if(!$cgi){//echo "Display custom success page.. <br>";
+ if($cnfact=='1') $confirmed = 'preconfirm'; else $confirmed = 'subscribe'; //echo $confirmed.'<br>';//debug
  if($chtmlid) $chid = $chtmlid;
  else $chid = listopts('chtmlid',$oklists[0]); 
  if($chtmlid && is_numeric($chtmlid)) $chid = $chtmlid;
  $eid = listopts('errorid',$oklists[0]);
  $data = chtml($confirmed,$chid);
+ //echo "userid: ".$chuserid."<br>";//debug
  list($data) = processmsg($chuserid,$data,'','','0');
+ /*list($data) = processmsg2($chuserid, $uid,$list, $fname, $lname, $email,$refurl,$ipaddr,
+         $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, 
+         $data, '', '', '0') ;*/
+ //$cmd = "INSERT INTO $utable VALUES (NULL,'$uid','$list','$fname','$lname','$email','$user1','$user2','$user3','$user4','$user5','$user6','$user7','$user8','$user9','$user10','$userseq','$userdel','$confirmed','$today','$ipaddr','$refurl','$html','0');";
+ //if(!$data) echo 'data is empty';
  if($key==0) if(strpos(' '.$data,'URL:')==1) header('Location: '.str_replace('URL:','',$data)); else echo $data;
+ echo 'key '.$key;
 }
 // EOF
 ?>

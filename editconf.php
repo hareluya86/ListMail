@@ -1420,7 +1420,12 @@ $cmd ="CREATE TABLE $ltable (
    listopts varchar(20) NOT NULL,
    chtmlid smallint unsigned NOT NULL,
    errorid smallint unsigned NOT NULL,
-   addopts varchar(100) NOT NULL,   
+   addopts varchar(100) NOT NULL,
+   remote tinyint(1) NOT NULL DEFAULT '0',
+   remotedb text NOT NULL,
+   remoteuser text NOT NULL,
+   remotepwd text NOT NULL,
+   remotehost text NOT NULL,
    PRIMARY KEY (id),
    KEY listnum (listnum)
 );";
@@ -1428,7 +1433,8 @@ $cmd ="CREATE TABLE $ltable (
 echo "Creating <i>mailing list</i> table <b>$ltable</b> - ";
 mysql_query($cmd) or die ("**Error creating $ltable! ".mysql_error(). "<br>Is the database login information in CONFIG.PHP  correct?  Did you already run install?");
 
-$cmd="INSERT INTO $ltable VALUES ('0', '1', 'Example Mailing List', 'news@$dom', 'Your Site Newsletter', 'Welcome!', 'Welcome to the $dom newsletter.','','','1','Confirmation','Please confirm your subscription to our mailing list by clicking the link below:\n\n!confirm\n\nThank you!','','','0','Confirmation Reminder','You subscribed to our list but did not respond to our confirmation email.  We hope you are still interested in joining us!\n\nPlease confirm your subscription to our mailing list by clicking the link below:\n\n!confirm\n\nThank you!','','','0','1;7','0','0','Example Field/*LMP*//*LMP*/Please enter your Example!','','','','','','','','','','0;0;0;0;0','','0;1;0','1','1',';;;;100;;1;1;0');";
+//$cmd="INSERT INTO $ltable VALUES ('0', '1', 'Example Mailing List', 'news@$dom', 'Your Site Newsletter', 'Welcome!', 'Welcome to the $dom newsletter.','','','1','Confirmation','Please confirm your subscription to our mailing list by clicking the link below:\n\n!confirm\n\nThank you!','','','0','Confirmation Reminder','You subscribed to our list but did not respond to our confirmation email.  We hope you are still interested in joining us!\n\nPlease confirm your subscription to our mailing list by clicking the link below:\n\n!confirm\n\nThank you!','','','0','1;7','0','0','Example Field/*LMP*//*LMP*/Please enter your Example!','','','','','','','','','','0;0;0;0;0','','0;1;0','1','1',';;;;100;;1;1;0');";
+$cmd="INSERT INTO $ltable VALUES ('0', '1', 'Example Mailing List', 'news@$dom', 'Your Site Newsletter', 'Welcome!', 'Welcome to the $dom newsletter.','','','1','Confirmation','Please confirm your subscription to our mailing list by clicking the link below:\n\n!confirm\n\nThank you!','','','0','Confirmation Reminder','You subscribed to our list but did not respond to our confirmation email.  We hope you are still interested in joining us!\n\nPlease confirm your subscription to our mailing list by clicking the link below:\n\n!confirm\n\nThank you!','','','0','1;7','0','0','Example Field/*LMP*//*LMP*/Please enter your Example!','','','','','','','','','','0;0;0;0;0','','0;1;0','1','1',';;;;100;;1;1;0',0,'','','','');";
 echo "Creating example list.<br>";
 mysql_query($cmd) or die("**Error inserting example list data.");
 
@@ -1455,7 +1461,7 @@ $cmd="CREATE TABLE $utable (
    cseq smallint NOT NULL,
    cdel smallint NOT NULL,
    cnf char(1) NOT NULL,
-   dateadd date NOT NULL,
+   dateadd datetime NOT NULL,
    ipaddr varchar (15) not null,
    refurl varchar (75) not null,
    htmail CHAR (1) NOT NULL,
@@ -1586,6 +1592,7 @@ $cmd = "CREATE TABLE $otable (
   bat varchar(6) NOT NULL default '',
   battype char(1) NOT NULL default '',
   mtype char(1) NOT NULL default '',
+  lid smallint unsigned NOT NULL default '',
   uid mediumint(9) unsigned NOT NULL default '0',
   mid varchar(10) NOT NULL default '',
   xtra varchar(10) NOT NULL default '',
@@ -1939,12 +1946,12 @@ onclick=\"window.close()\"><br>"; exit;
 
     if(!$error){
      // authenticated, set up test email
-     echo "Sending test email to remote address.. "; flush();
+     echo "Sending test email to remote address..<br> "; flush();
 
      fputs($ssock, "MAIL FROM: <$erraddr>\r\n");
      $srvmsg = fgets($ssock, 1024);
      $lastmsg = substr($srvmsg, 0, 3);
-     if ($lastmsg <> "250") $error = 1; else $error = '';
+     if ($lastmsg <> "250") $error = 1; else $error = ''; 
 
      if(!$error){
       fputs($ssock, "RCPT TO: <$testmail>\r\n");

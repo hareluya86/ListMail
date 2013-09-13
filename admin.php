@@ -477,8 +477,11 @@ function hopto(URL){
         echo "<table width=760 border=0 cellspacing=0 cellpadding=0>
  <tr>
   <td>
-<table width=100% border=0 cellspacing=0 cellpadding=0><tr><td width=420 valign=bottom><a href=http://listmailpro.com><img src=logo.gif width=420 height=28 border=0></a><br></td><td valign=bottom align=right><span class=bigtext>$headtxt</span></td></tr></table>
-  </td>
+";
+        //<table width=100% border=0 cellspacing=0 cellpadding=0><tr><td width=420 valign=bottom><a href=http://listmailpro.com><img src=logo.gif width=420 height=28 border=0></a><br></td><td valign=bottom align=right><span class=bigtext>$headtxt</span></td></tr></table>
+   if(substr($_SERVER['REQUEST_URI'],-strlen('login.php')) != 'login.php')
+       echo "<table width=100% border=0 cellspacing=0 cellpadding=0><tr><td width=420 valign=bottom><a href=http://listmailpro.com><img src=logo.gif width=420 height=28 border=0></a><br></td><td valign=bottom align=right><span class=bigtext>$headtxt</span></td></tr></table>";
+echo " </td>
  </tr>
  </table>\n";
 
@@ -593,7 +596,10 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
     $prow = mysql_query("select linkcode,keycode,listmailpath,ktrack from $ctable where 1", $link) or die('admin-4-' . mysql_error());
     list($linkch, $keych, $lmpath, $ktr) = mysql_fetch_row($prow);
     $inarr = array($subj, $msg, $htmsg);
-
+    echo 'Retrieved from database fresh';
+    echo 'subject: '.$subj;
+    echo 'msg: '.$msg;
+    echo '$htmsg: '.$htmsg;
     if (!$uid && !$pre)
         return $inarr;
 
@@ -607,6 +613,10 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
     } else
         $ltitle = 'Preview List';
     
+    echo 'Get list title';
+    echo 'subject: '.$subj;
+    echo 'msg: '.$msg;
+    echo '$htmsg: '.$htmsg;
     if (!$pre) {
         // get user info
         $cmd = "select id,uid,list,fname,lname,email,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,dateadd,ipaddr,refurl from $utable where id = '$uid'";
@@ -645,7 +655,10 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
         $uip = '0.0.0.0';
         $refu = 'http://' . getdomain() . '/preview_signup.html';
     }
-    
+    echo 'After getting local user info';
+    echo 'subject: '.$subj;
+    echo 'msg: '.$msg;
+    echo '$htmsg: '.$htmsg;
     while (list($k, $v) = each($inarr)) {
         if ($v) {
             $xmsg = $v;
@@ -700,10 +713,13 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
             // message codes
             $cmd = "select id,ref,typ,data1,data2,data3,data4,data5 from $dtable where (list = '$lnum' or list = '0') and typ <> 'text' order by list desc,ref";
             $drows = @mysql_query($cmd, $link) or die('admin-9-' . mysql_error());
+            echo $cmd.'<br>';
+            echo 'num of rows: '.mysql_num_rows($drows);
             if ($sqldebug)
                 echo "CMD=<b>$cmd</b><br>";
             while (list($cid, $ref, $typ, $data1, $data2, $data3, $data4, $data5) = @mysql_fetch_row($drows)) {
                 // process each code
+                echo 'process each code';
                 if ($ref)
                     switch ($typ) {
                         // fname,lname,fullname,remove,text,date,user1-10
@@ -864,6 +880,7 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
                             break;
                         // end switch
                     }
+                    
                 // no if ref closing bracket
                 // end message code database
                 // word wrap
@@ -880,6 +897,8 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
                 // $xmsg = str_replace("\r","\\r",str_replace("\n","\\n\n",$xmsg));
                 // echo "<textarea rows=20 cols=50>$xmsg</textarea>";
                 $outarr[$k] = $xmsg;
+                echo 'replacing message codes';
+                echo '"'.$outarr[$k].'"'.$outarr[$v];
             } // end each msg while
         } // if v
     } // msgwhile
@@ -1774,13 +1793,14 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
 
     // queue loop !!!
     // read from lm_sendq and process..
-    $cmd = "select id,mtype,uid,mid,xtra from $otable where bat = '$batch'";
+    $cmd = "select id,mtype,uid,lid,mid,xtra from $otable where bat = '$batch'";
+    echo $cmd;//debug
     $mrows = @mysql_query($cmd) or die('admin-16-' . mysql_error());
     if ($sqldebug)
         echo "CMD=<b>$cmd</b><br>";
 
     // display send box
-    $nmails = @mysql_num_rows($mrows);
+    $nmails = @mysql_num_rows($mrows);echo 'number of mails: '.$nmails;//debug
     $skipped = 0;
     $txsize = strlen($nmails);
     $timeleft = 0;
@@ -1805,7 +1825,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
     $sqlid = -1;
     if (@mysql_num_rows($mrows) > 0) {
         $first = 1;
-        while (list($oid, $mtype, $uid, $msgid, $xtra) = mysql_fetch_row($mrows)) {
+        while (list($oid, $mtype, $uid, $lid, $msgid, $xtra) = mysql_fetch_row($mrows)) {
             if ($first) {
                 $lastmid = $msgid;
                 $lastmt = $mtype;
@@ -1814,24 +1834,49 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
             $skiptonext = '';
             $nouser = '';
             $error = '';
-
+            echo 'oid '.$oid.', uid='.$uid.', lid='.$lid.', mtype='.$mtype.'<br>';//debug 
             if ($mtype <> '5') {
+                //Get list remote info
+                $lcmd = "select remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = $list";
+                echo $lcmd.'<br>';
+                $lrows = @mysql_query($lcmd);
+                list($remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = mysql_fetch_row($lrows);
+                echo 'remote='.$remote;//debug
                 // get user send vars
-                $urow = mysql_query("select uid,list,fname,lname,email,htmail,bounces from $utable where id = '$uid'") or die('admin-17-' . mysql_error());
-                if (@mysql_num_rows($urow) == 0) {
+                $ucmd = "select uid,list,fname,lname,email,htmail,bounces from $utable where id = '$uid'";
+                echo $ucmd.'<br>';//debug
+                if($remote){
+                    try {
+                        $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+                        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd); echo 'connected to dbh!<br>';//debug
+                    } catch (PDOException $e) {
+                        die('admin-39-' . $e->getMessage());
+                    }
+                    $dbh_query = $dbh->query($ucmd);
+                    list($unid, $mlist, $fname, $lname, $email, $htmail, $bounces) = $dbh_query->fetch(); //assuming there will only be 1 unique userid
+                    $rcount = $dbh_query->rowCount();
+                    echo 'email: '.$email.'<br> rcount='.$rcount.'<br>';//debug
+                    $dbh = null; //close the connection
+                }else{
+                    $urow = mysql_query($ucmd, $link) or die('admin-17-' . mysql_error());
+                    list($unid, $mlist, $fname, $lname, $email, $htmail, $bounces) = mysql_fetch_row($urow);
+                    $rcount = @mysql_num_rows($urow);
+                }
+                //$urow = mysql_query($ucmd) or die('admin-17-' . mysql_error());
+                if ($rcount == 0) {
                     $nouser = 1;
                 } else {
                     $nouser = '';
                     if ($sqldebug)
                         echo "CMD=<b>$cmd</b><br>";
-                    list($unid, $mlist, $fname, $lname, $email, $htmail, $bounces) = mysql_fetch_row($urow);
+                    //list($unid, $mlist, $fname, $lname, $email, $htmail, $bounces) = mysql_fetch_row($urow);
                     if (in_array(strtolower(substr($email, strpos($email, '@') + 1)), $otextonly))
                         $textonly = 1; else
                         $textonly = '';
                     // echo "UID=$uid UNID=$unid  EMAIL=$email<br>";
                 }
             } else
-                $nouser = '';
+                $nouser = '';echo 'nouser='.$nouser;//debug
 
             if (!$nouser) {
                 // get message
@@ -1841,6 +1886,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                     if ($sqldebug)
                         echo "CMD=<b>$cmd</b><br>";
                     list($subj, $msg, $htmsg, $fatt) = @mysql_fetch_row($msgrow);
+                    echo $subj.'<br>'.$msg.'<br>'.$htmsg.'<br>'.$fatt.'<br>';
                 }
                 if ($mtype == '2') {
                     // followup
@@ -1926,10 +1972,11 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                 } else {
                     // not admin msg, continue
                     $cmd = "select sendn,sende from $ltable where listnum = '$mlist'";
+                    echo $cmd.'<br>';//debug
                     $lrow = @mysql_query($cmd) or die('admin-25-' . mysql_error());
                     if ($sqldebug)
                         echo "CMD=<b>$cmd</b><br>";
-                    list($sendn, $sende) = @mysql_fetch_row($lrow);
+                    list($sendn, $sende) = @mysql_fetch_row($lrow);echo $sendn.' and '.$sende.'<br>';//debug
 //    echo "got list settings<br>"; flush();
                 }
 
@@ -2728,7 +2775,7 @@ function listmenu($list, $cpage, $xtra = '') {
         echo "<option value=\"\">N/A</a>";
     } else {
         if ($cpage == 'users' || $cpage == 'domail' || $cpage == 'confcode' || $cpage == 'logs')
-            echo "<option value=\"./" . $loadfile . "?list=all" . $xtra . "\">All";
+            echo "<option value=\"./" . $loadfile . "?list=all" . $xtra . "\">All (warning: does not show remote lists)";
 
         $cmd = "select listnum,title from $ltable where 1 order by listnum";
         $result = @mysql_query($cmd, $link) or die('admin-28-' . mysql_error());
@@ -3295,7 +3342,7 @@ function sendwelcome($userid,$list) {
         $dbh_query = $dbh->query($cmd);
         //list($unid, $fname, $lname, $cnf, $list, $email, $htmail, $user2) = $dbh_query->fetch(); //assuming there will only be 1 unique userid
         list($unid,$uid,$list,$fname,$lname,$email,$user1,$user2,$user3,$user4,$user5,$user6,$user7,$user8,$user9,$user10,$cseq,$cdel,$cnf,$dateadd,$ipaddr,$refurl,$htmail,$bounces)= $dbh_query->fetch();
-        $dbh = null; //close the connection
+       if($remote) $dbh = null; //close the connection
     }else{
         $urow = mysql_query($cmd, $link) or die('admin-39-' . mysql_error());
         list($unid,$uid,$list,$fname,$lname,$email,$user1,$user2,$user3,$user4,$user5,$user6,$user7,$user8,$user9,$user10,$cseq,$cdel,$cnf,$dateadd,$ipaddr,$refurl,$htmail,$bounces) = mysql_fetch_row($urow);
@@ -3973,10 +4020,13 @@ function emsg($t, $i) {
 }
 
 function chtml($t, $i) {
+    echo "calling custom html code.. "."<br>";
     global $chdtable;
     $r = mysql_query("select html,url from $chdtable where typ = '$t' and id = '$i';") or die('admin-60-' . mysql_error());
     // echo "select html from $chdtable where typ = '$t' and id = '$i';";
+    //echo "select html from $chdtable where typ = '$t' and id = '$i';";//debug
     if (@mysql_num_rows($r) > 0) {
+        echo "custom html found";
         list($d, $u) = mysql_fetch_row($r);
         if ($u)
             return 'URL:' . $u; else

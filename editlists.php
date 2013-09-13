@@ -72,9 +72,9 @@ if($efields){
  }
 
  // main page
- $cmd = "select field1,field2,field3,field4,field5,field6,field7,field8,field9,field10 from $ltable where listnum = '$list';";
+ $cmd = "select field1,field2,field3,field4,field5,field6,field7,field8,field9,field10,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$list';";
  $lrow = mysql_query($cmd);
-list($field1,$field2,$field3,$field4,$field5,$field6,$field7,$field8,$field9,$field10)=@mysql_fetch_row($lrow);
+list($field1,$field2,$field3,$field4,$field5,$field6,$field7,$field8,$field9,$field10,$remote,$remotedb,$remoteuser,$remotepwd,$remotehost)=@mysql_fetch_row($lrow);
  // parse data
  for($i=1;$i<=10;$i++){
   list(${"field".$i},${"reqd".$i},${"error".$i})=explode('/*LMP*/',${"field".$i});
@@ -312,7 +312,7 @@ if(!$demo){
  $listnum++;
  $xmails = explode(';',$adminmail); $adminmail = $xmails[0];
  $dom = getdomain();
- $cmd2 = "insert into $ltable values('null','$listnum','New List','news@$dom','New List Newsletter','Welcome!','Welcome to the mailing list!','','','1','Please verify your subscription','Click the link below to verify your email address for subscription to the yoursite.com newsletter\n\n!confirm','','','0','Confirmation Reminder','You subscribed to our list but did not respond to our confirmation email.  We hope you are still interested in joining us!\n\nPlease confirm your subscription to our mailing list by clicking the link below:\n\n!confirm\n\nThank you!','','','0','1;7','','', '','','','','','','','','','','0;0;0;0;0','$adminmail','0;1;0','1','1',';;;;100;;1;1;0',0,'','','')";
+ $cmd2 = "insert into $ltable values('null','$listnum','New List','news@$dom','New List Newsletter','Welcome!','Welcome to the mailing list!','','','1','Please verify your subscription','Click the link below to verify your email address for subscription to the yoursite.com newsletter\n\n!confirm','','','0','Confirmation Reminder','You subscribed to our list but did not respond to our confirmation email.  We hope you are still interested in joining us!\n\nPlease confirm your subscription to our mailing list by clicking the link below:\n\n!confirm\n\nThank you!','','','0','1;7','','', '','','','','','','','','','','0;0;0;0;0','$adminmail','0;1;0','1','1',';;;;100;;1;1;0',0,'','','','')";
  mysql_query($cmd2) or die(mysql_error());; 
  $logtxt = "New list created.";
  $list = $listnum;
@@ -327,9 +327,19 @@ if(!$demo){
  list($listnum) = @mysql_fetch_row($result);
  $listnum++;
  // get current list data
- $lrow = mysql_query("select title,sende,sendn,welsubj,welcom,welcht,welcf,welcact,cnfsubj,cnfmesg,cnfht,cnff,cnfact,remsubj,remmsg,remht,remf,remact,remopts,req1,req2,field1,field2,field3,field4,field5,field6,field7,field8,field9,field10,notifs,nmails,listopts,chtmlid,errorid,addopts from $ltable where listnum = '".addslashes($list)."';");
- list($title,$sende,$sendn,$welsubj,$welcom,$welcht,$welcf,$welcact,$cnfsubj,$cnfmesg,$cnfht,$cnff,$cnfact,$remsubj,$remmsg,$remht,$remf,$remact,$remopts,$req1,$req2,$field1,$field2,$field3,$field4,$field5,$field6,$field7,$field8,$field9,$field10,$notifs,$nmails,$listopts,$chtmlid,$errorid,$addopts) = mysql_fetch_row($lrow);
- mysql_query("insert into $ltable values('','$listnum','".addslashes($title)."','".addslashes($sende)."','".addslashes($sendn)."','".addslashes($welsubj)."','".addslashes($welcom)."','".addslashes($welcht)."','".addslashes($welcf)."','".addslashes($welcact)."','".addslashes($cnfsubj)."','".addslashes($cnfmesg)."','".addslashes($cnfht)."','".addslashes($cnff)."','".addslashes($cnfact)."','".addslashes($remsubj)."','".addslashes($remmsg)."','".addslashes($remht)."','".addslashes($remf)."','".addslashes($remact)."','".addslashes($remopts)."','".addslashes($req1)."','".addslashes($req2)."','".addslashes($field1)."','".addslashes($field2)."','".addslashes($field3)."','".addslashes($field4)."','".addslashes($field5)."','".addslashes($field6)."','".addslashes($field7)."','".addslashes($field8)."','".addslashes($field9)."','".addslashes($field10)."','".addslashes($notifs)."','".addslashes($nmails)."','".addslashes($listopts)."','".addslashes($chtmlid)."','".addslashes($errorid)."','".addslashes($addopts)."');");
+ $lrow = mysql_query("select title,sende,sendn,welsubj,welcom,welcht,welcf,welcact,cnfsubj,cnfmesg,cnfht,cnff,cnfact,remsubj,remmsg,remht,remf,remact,remopts,req1,req2,field1,field2,field3,field4,field5,field6,field7,field8,field9,field10,notifs,nmails,listopts,chtmlid,errorid,addopts,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '".addslashes($list)."';");
+ list($title,$sende,$sendn,$welsubj,$welcom,$welcht,$welcf,$welcact,$cnfsubj,$cnfmesg,$cnfht,$cnff,$cnfact,$remsubj,$remmsg,$remht,$remf,$remact,$remopts,$req1,$req2,$field1,$field2,$field3,$field4,$field5,$field6,$field7,$field8,$field9,$field10,$notifs,$nmails,$listopts,$chtmlid,$errorid,$addopts,$remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = mysql_fetch_row($lrow);
+ mysql_query("insert into $ltable values('','$listnum','".addslashes($title)."','".addslashes($sende)."','"
+         .addslashes($sendn)."','".addslashes($welsubj)."','".addslashes($welcom)."','".addslashes($welcht)."','"
+         .addslashes($welcf)."','".addslashes($welcact)."','".addslashes($cnfsubj)."','".addslashes($cnfmesg)."','"
+         .addslashes($cnfht)."','".addslashes($cnff)."','".addslashes($cnfact)."','".addslashes($remsubj)."','"
+         .addslashes($remmsg)."','".addslashes($remht)."','".addslashes($remf)."','".addslashes($remact)."','"
+         .addslashes($remopts)."','".addslashes($req1)."','".addslashes($req2)."','".addslashes($field1)."','"
+         .addslashes($field2)."','".addslashes($field3)."','".addslashes($field4)."','".addslashes($field5)."','"
+         .addslashes($field6)."','".addslashes($field7)."','".addslashes($field8)."','".addslashes($field9)."','"
+         .addslashes($field10)."','".addslashes($notifs)."','".addslashes($nmails)."','".addslashes($listopts)."','"
+         .addslashes($chtmlid)."','".addslashes($errorid)."','".addslashes($addopts)."','".addslashes($remote)."','"
+         .addslashes($remotedb)."','".addslashes($remoteuser)."','".addslashes($remotepwd)."',".addslashes($remotehost)."')");
  // get current list followups and copy
  $frows = mysql_query("select subject,content,htcontent,fattach,seq,del,cron,sset from $ftable where list = '".addslashes($list)."';");
  if(@mysql_num_rows($frows)>0){
