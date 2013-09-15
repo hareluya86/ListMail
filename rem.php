@@ -32,7 +32,8 @@ if($x){
   $list = addslashes($l);
   $email = addslashes($e);
  }
- $cmd = "list = '$list' and email like '$email' and (cnf = '1' OR cnf = '0')";
+ $cmd = "list = '$list' and email like '$email' and (cnf = '1' OR cnf = '0')"; //Safe?
+ //$cmd = "list = '$list' and email = '$email' and (cnf = '1' OR cnf = '0')"; //exact match email
 }
 if($r){
  if(strpos($r,';')>0 && !$email){
@@ -67,13 +68,35 @@ if($email && !valid_email(strtolower($email))) $error = 'email_bad';
 
 // error check
 if(!$error){
- $cmd = "select id,list,email from $utable where $cmd";
- $rows = mysql_query($cmd) or die(mysql_error());
- if(@mysql_num_rows($rows)>0){
-  list($cid,$list,$email)=@mysql_fetch_row($rows);
- } else { $error = 'rem_nf'; }
+ $ucmd = "select id,list,email from $utable where $cmd";
+ //Check if list is remote
+ $lcmd = "select title,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$list'";
+ $lrow = @mysql_query($lcmd, $link) or die('admin-6-' . mysql_error());
+ list($ltitle,$remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = @mysql_fetch_row($lrow);
+ if($remote){
+    try {
+        $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+        $dbh_query = $dbh->query($ucmd);
+    } catch (PDOException $e) {
+        die('rem-1-' . $e->getMessage());
+    }
+    if($dbh_query->rowCount()>0){
+        list($cid,$list,$email) = $dbh_query->fetch();
+    }else{
+        $error = 'rem_nf';
+    }
+    $dbh = null;//close the connection
+ }else{
+    $rows = mysql_query($ucmd) or die(mysql_error());
+    //echo $ucmd.'<br>';//debug
+    if(@mysql_num_rows($rows)>0){
+    list($cid,$list,$email)=@mysql_fetch_row($rows);
+    } else { $error = 'rem_nf'; } 
+    //echo 'email is '.$email.'<br>';//debug
+    //echo 'list is '.$list.'<br>';//debug
+ }
 }
-
 // echo "ORIGvars: \$c = $c, \$list = $list, \$email = $email, \$u = $u<br>";
 
 // echo "FINALvars: \$cid = $cid, \$list = $list, \$email = $email<br>";
@@ -120,14 +143,40 @@ if(!$error){
   $cmd .= "list = '$l'";
  }
  $cmd .= ')'; 
- $rows = mysql_query($cmd);
- if(@mysql_num_rows($rows)>0){
+ if($remote){
+    try {
+        $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+        $dbh_query = $dbh->query($cmd);
+    } catch (PDOException $e) {
+        die('rem-2-' . $e->getMessage());
+    }
+    if($dbh_query->rowCount()>0){
+        $rows = $dbh_query->fetchAll();
+    }else{
+        $error = 'rem_nf';
+    }
+    $dbh = null;//close the connection
+ }else{
+     $temprows = mysql_query($cmd);
+     echo $cmd;//debug
+     $rows = array();
+     while($temprow = mysql_fetch_array($temprows)){
+         $rows[] = $temprow;echo $temprow['id'].'<br>';
+     }
+ }
+ 
+ //if(@mysql_num_rows($rows)>0){
+ //echo 'Count: '.count($rows);//debug
+ if(count($rows)>0){
   $delcmd = array();
   $x = 0;
   if($r) $r .= ';';
-  while(list($id,$uniqid,$ln,$fname)=mysql_fetch_row($rows)){
+  //while(list($id,$uniqid,$ln,$fname)=mysql_fetch_row($rows)){
+  foreach($rows as $row){
+   list($id,$uniqid,$ln,$fname) = $row;   //echo 'id = '.$id.'<br>';//debug
    // loop results, deleting IF $delete, if not, simply display confirm page
-   if($delete){
+   if($delete){echo 'deleting...<br>';
     // do it
     $narr = getnotifs($ln);
     if($narr[1]=='1') sendnotif('remove',$id);
@@ -136,10 +185,23 @@ if(!$error){
     $listopts = explode(';',$listopts);
     if($listopts[4]=='1') remlists($email,$ln,4);
     if($listopts[5]=='1') addlists($email,$ln,5);
-    // echo "User ID $id deleted. (Uncomment)<br>";
+    //echo "User ID $id deleted. (Uncomment)<br>";//debug
     if($listopts[1]==1){
-     // echo "updating $id to Removed..<br>";
-     mysql_query("update $utable set cnf = '2' where id = '$id';");
+      //echo "updating $id to Removed..<br>";//debug
+      $cmd = "update $utable set cnf = '2' where id = '$id';";
+      if($remote){
+        try {
+            $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+            $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+            $dbh_query = $dbh->query($cmd);
+        } catch (PDOException $e) {
+            die('rem-2-' . $e->getMessage());
+        }
+        $dbh = null;//close the connection
+      }else{
+          mysql_query($cmd);
+      }
+     //mysql_query("update $utable set cnf = '2' where id = '$id';");
     } else $delcmd[] = "delete from $utable where id = '$id';";
    }
    // if multi list rem, add uid 
@@ -174,9 +236,13 @@ if($error){
  } else {
   // confirm
   $data = chtml('remove',$chid);
-  list($data) = processmsg($cid,$data,'','','0','',$c,$r);
+  //list($data) = processmsg($cid,$data,'','','0','',$c,$r);
+  //processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '', $mid = '', $r = '')
+  list($data) = processmsg2($id, $uniqid,$ln, $fname, '', $email,'','','', '', '', '', '', '', '', '', '', '', $data, '', '', '0', '', $c,$r); 
+      //$id,$uniqid,$ln,$fname
+    }
  }
  if($delcmd) while(list($k,$v)=each($delcmd)) mysql_query($v);
  if(strpos(' '.$data,'URL:')=='1') header('Location: '.str_replace('URL:','',$data)); else echo $data;  exit;
-}
+
 ?>

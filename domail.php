@@ -58,7 +58,7 @@ if ($sendit || $resume){
   $sendq = 0;
   $groupby = '';
   if(is_numeric($tolist)){ //This is the part where we need to change to retrieve email addresses from the client's database
-   $cmd = "select email,id from $utable where list = '$tolist' and cnf = '1'";
+   $cmd = "select email,id from $utable where list = '$tolist' and cnf = '1'"; //echo $cmd.'<br>';//debug
   } else {
    // selection
    $tors = substr($tolist,2,strlen($tolist)-2);
@@ -74,7 +74,7 @@ if ($sendit || $resume){
         try {
             $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
             $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-            $dbh_query = $dbh->query($cmd);echo $cmd.'<br>';//debug
+            $dbh_query = $dbh->query($cmd);//echo $cmd.'<br>';//debug
         } catch (PDOException $e) {
             die('domail-' . $e->getMessage());
         }
@@ -83,14 +83,16 @@ if ($sendit || $resume){
     }else{
         $sendtousers = mysql_query($cmd) or $sqlerror = mysql_error();
         $urows = array();
-        while($r = mysql_fetch_assoc($sendtousers)) {
-            $urows[$r['config_name']] = $r['config_value'];
+        while($r = mysql_fetch_array($sendtousers)) {
+            /*$urows[$r['config_name']] = $r['config_value'];
+            echo $r['config_name'].' = '.$r['config_value'];//debug*/
+            $urows[] = $r;
         }
     }
-    $numsent = count($urows);echo $numsent.'<br>';//debug
+    $numsent = count($urows);//echo $numsent.'<br>';//debug
     
   $cmd = "insert into $ttable values('','".addslashes($txtsubj)."','".addslashes($txtcont)."','".addslashes($txthtcont)."','".addslashes($txtfatt)."','".date("Y-m-d H:i:s")."','1','$numsent','".addslashes($tolist)."')";
-  @mysql_query($cmd);echo $cmd.'<br>';//debug
+  @mysql_query($cmd);//echo $cmd.'<br>';//debug
   if($sqldebug) echo "CMD=<b>$cmd</b><br>";
   $msgid = mysql_insert_id();
 
@@ -102,11 +104,13 @@ if ($sendit || $resume){
   }  
   // insert into sendq
   //while(list($em,$uid) = @mysql_fetch_row($urows)){
-  while(list($em,$uid) = $urows){//doesn't cater for local lists
-      echo 'uid='.$uid;
+  //while(list($em,$uid) = $urows){//doesn't cater for local lists
+  foreach($urows as $row){
+   list($em,$uid)=$row;   
+   //echo 'uid='.$uid.'<br>';//debug
    $xid = calc32();
    $cmd = "insert into $otable(id,bat,battype,mtype,uid,lid,mid) values('$xid','$batid','1','1','$uid','$list','$msgid');";
-   echo $cmd.'<br>';//debug
+   //echo $cmd.'<br>';//debug
    // echo "CMD=$cmd<br>";
    if($sqldebug) echo "CMD=<b>$cmd</b><br>";
    @mysql_query($cmd) or die(mysql_error());
@@ -120,8 +124,8 @@ if ($sendit || $resume){
  // end !resume
 
  if(!$resume){
-     echo 'batch id = '.$batid;//debug
-     echo 'msg id = '.$msgid;//debug
+     //echo 'batch id = '.$batid;//debug
+     //echo 'msg id = '.$msgid;//debug
   $sentok = domail('','solo',$msgid,$batid);
  } elseif($resume){
   // check if this mailing was completed
