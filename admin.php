@@ -596,10 +596,9 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
     $prow = mysql_query("select linkcode,keycode,listmailpath,ktrack from $ctable where 1", $link) or die('admin-4-' . mysql_error());
     list($linkch, $keych, $lmpath, $ktr) = mysql_fetch_row($prow);
     $inarr = array($subj, $msg, $htmsg);
-    echo 'Retrieved from database fresh';
-    echo 'subject: '.$subj;
-    echo 'msg: '.$msg;
-    echo '$htmsg: '.$htmsg;
+    //echo 'subject: '.$subj;
+    //echo 'msg: '.$msg;
+    //echo '$htmsg: '.$htmsg;
     if (!$uid && !$pre)
         return $inarr;
 
@@ -613,10 +612,9 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
     } else
         $ltitle = 'Preview List';
     
-    echo 'Get list title';
-    echo 'subject: '.$subj;
-    echo 'msg: '.$msg;
-    echo '$htmsg: '.$htmsg;
+    //echo 'subject: '.$subj;
+    //echo 'msg: '.$msg;
+    //echo '$htmsg: '.$htmsg;
     if (!$pre) {
         // get user info
         $cmd = "select id,uid,list,fname,lname,email,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,dateadd,ipaddr,refurl from $utable where id = '$uid'";
@@ -655,10 +653,9 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
         $uip = '0.0.0.0';
         $refu = 'http://' . getdomain() . '/preview_signup.html';
     }
-    echo 'After getting local user info';
-    echo 'subject: '.$subj;
-    echo 'msg: '.$msg;
-    echo '$htmsg: '.$htmsg;
+    //echo 'subject: '.$subj;
+    //echo 'msg: '.$msg;
+    //echo '$htmsg: '.$htmsg;
     while (list($k, $v) = each($inarr)) {
         if ($v) {
             $xmsg = $v;
@@ -713,13 +710,12 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
             // message codes
             $cmd = "select id,ref,typ,data1,data2,data3,data4,data5 from $dtable where (list = '$lnum' or list = '0') and typ <> 'text' order by list desc,ref";
             $drows = @mysql_query($cmd, $link) or die('admin-9-' . mysql_error());
-            echo $cmd.'<br>';
-            echo 'num of rows: '.mysql_num_rows($drows);
+            //echo $cmd.'<br>';
+            //echo 'num of rows: '.mysql_num_rows($drows);
             if ($sqldebug)
                 echo "CMD=<b>$cmd</b><br>";
             while (list($cid, $ref, $typ, $data1, $data2, $data3, $data4, $data5) = @mysql_fetch_row($drows)) {
                 // process each code
-                echo 'process each code';
                 if ($ref)
                     switch ($typ) {
                         // fname,lname,fullname,remove,text,date,user1-10
@@ -897,8 +893,6 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
                 // $xmsg = str_replace("\r","\\r",str_replace("\n","\\n\n",$xmsg));
                 // echo "<textarea rows=20 cols=50>$xmsg</textarea>";
                 $outarr[$k] = $xmsg;
-                echo 'replacing message codes';
-                echo '"'.$outarr[$k].'"'.$outarr[$v];
             } // end each msg while
         } // if v
     } // msgwhile
@@ -4020,13 +4014,13 @@ function emsg($t, $i) {
 }
 
 function chtml($t, $i) {
-    echo "calling custom html code.. "."<br>";
+    //echo "calling custom html code.. "."<br>";//debug
     global $chdtable;
     $r = mysql_query("select html,url from $chdtable where typ = '$t' and id = '$i';") or die('admin-60-' . mysql_error());
     // echo "select html from $chdtable where typ = '$t' and id = '$i';";
     //echo "select html from $chdtable where typ = '$t' and id = '$i';";//debug
     if (@mysql_num_rows($r) > 0) {
-        echo "custom html found";
+        //echo "custom html found";//debug
         list($d, $u) = mysql_fetch_row($r);
         if ($u)
             return 'URL:' . $u; else

@@ -140,8 +140,21 @@ while(list($key,$list)=each($lists)){
             $pdo_query = $dbh->query($cmd);
             $pdo_num_results = $pdo_query->rowCount();
             if($pdo_num_results > 0){
-                header("Location: http://www.airnavsystems.com/downhere.html"); //hard-coded stuff...
-                die();
+                //header("Location: http://www.airnavsystems.com/downhere.html"); //hard-coded stuff...
+                //die();
+                list($xid,$xuid,$xcnf)=$pdo_query->fetch();
+                if($xcnf<>'1'){
+                    // overwrite
+                    $uids[$list] = $xuid;
+                } else {
+                    if($overwrite_dupes || $overwritedupes){
+                        // overwrite
+                        $uids[$list] = $xuid;
+                    } else {
+                        $dupes[$list] = 1;
+                        if(!in_array($list,$badlists)) $badlists[] = $list;
+                    }
+                }
             }
         }else{
             $result = mysql_query($cmd);
@@ -249,8 +262,14 @@ if(count($oklists)==0 || $errorout){
    if($rln) $msg .= emsg('lname_req',$eid).'<br>';
    if($ux) $msg .= $uerr;
   }
-  $data = str_replace('!data',$msg,$data);
-  if(strpos(' '.$data,'URL:')=='1') header('Location: '.str_replace('URL:','',$data)); else echo $data;
+  $data = str_replace('!data',$msg,$data); //echo 'msg: '.$msg.'<br>';//debug
+  //if(strpos(' '.$data,'URL:')=='1') header('Location: '.str_replace('URL:','',$data)); else echo $data;
+  if(strpos(' '.$data,'URL:')=='1') header('Location: '.str_replace('URL:','',$data)); 
+  if(strpos(' '.$msg,'URL:')=='1') {
+      $msg = str_replace('<br>','',$msg);
+      header('Location: '.str_replace('URL:','',$msg)); 
+  }
+  else echo $data;
   exit;
  } else {
   exit();

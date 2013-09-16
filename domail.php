@@ -74,7 +74,7 @@ if ($sendit || $resume){
         try {
             $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
             $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-            $dbh_query = $dbh->query($cmd);echo $cmd.'<br>';//debug
+            //$dbh_query = $dbh->query($cmd);echo $cmd.'<br>';//debug
         } catch (PDOException $e) {
             die('domail-' . $e->getMessage());
         }
@@ -87,10 +87,10 @@ if ($sendit || $resume){
             $urows[$r['config_name']] = $r['config_value'];
         }
     }
-    $numsent = count($urows);echo $numsent.'<br>';//debug
+    $numsent = count($urows);//echo $numsent.'<br>';//debug
     
   $cmd = "insert into $ttable values('','".addslashes($txtsubj)."','".addslashes($txtcont)."','".addslashes($txthtcont)."','".addslashes($txtfatt)."','".date("Y-m-d H:i:s")."','1','$numsent','".addslashes($tolist)."')";
-  @mysql_query($cmd);echo $cmd.'<br>';//debug
+  @mysql_query($cmd);//echo $cmd.'<br>';//debug
   if($sqldebug) echo "CMD=<b>$cmd</b><br>";
   $msgid = mysql_insert_id();
 
@@ -106,7 +106,7 @@ if ($sendit || $resume){
       echo 'uid='.$uid;
    $xid = calc32();
    $cmd = "insert into $otable(id,bat,battype,mtype,uid,lid,mid) values('$xid','$batid','1','1','$uid','$list','$msgid');";
-   echo $cmd.'<br>';//debug
+   //echo $cmd.'<br>';//debug
    // echo "CMD=$cmd<br>";
    if($sqldebug) echo "CMD=<b>$cmd</b><br>";
    @mysql_query($cmd) or die(mysql_error());
@@ -120,8 +120,8 @@ if ($sendit || $resume){
  // end !resume
 
  if(!$resume){
-     echo 'batch id = '.$batid;//debug
-     echo 'msg id = '.$msgid;//debug
+     //echo 'batch id = '.$batid;//debug
+     //echo 'msg id = '.$msgid;//debug
   $sentok = domail('','solo',$msgid,$batid);
  } elseif($resume){
   // check if this mailing was completed
