@@ -596,25 +596,25 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
     $prow = mysql_query("select linkcode,keycode,listmailpath,ktrack from $ctable where 1", $link) or die('admin-4-' . mysql_error());
     list($linkch, $keych, $lmpath, $ktr) = mysql_fetch_row($prow);
     $inarr = array($subj, $msg, $htmsg);
-    //echo 'subject: '.$subj;
-    //echo 'msg: '.$msg;
-    //echo '$htmsg: '.$htmsg;
+    //echo 'subject: '.$subj;//debug
+    //echo 'msg: '.$msg;//debug
+    //echo '$htmsg: '.$htmsg;//debug
     if (!$uid && !$pre)
         return $inarr;
 
     if (!$pre) {
         // get list title before getting user info
-        $cmd = "select title,remote,remotedb,remoteuser,remotehost from $ltable where listnum = '$lnum'";
+        $cmd = "select title,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$lnum'";
         $lrow = @mysql_query($cmd, $link) or die('admin-6-' . mysql_error());
         if ($sqldebug)
             echo "CMD=<b>$cmd</b><br>";
-        list($ltitle,$remote,$remotedb,$remoteuser,$remotehost) = @mysql_fetch_row($lrow);
+        list($ltitle,$remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = @mysql_fetch_row($lrow);
     } else
         $ltitle = 'Preview List';
-    
-    //echo 'subject: '.$subj;
-    //echo 'msg: '.$msg;
-    //echo '$htmsg: '.$htmsg;
+
+    //echo 'subject: '.$subj;//debug
+    //echo 'msg: '.$msg;//debug
+    //echo '$htmsg: '.$htmsg;//debug
     if (!$pre) {
         // get user info
         $cmd = "select id,uid,list,fname,lname,email,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,dateadd,ipaddr,refurl from $utable where id = '$uid'";
@@ -629,6 +629,7 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
             }
             list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = $dbh_query->fetch();
             $dbh = null; //close the connection
+            //echo 'lnum:'.$lnum.'<br>';
         }else{
             $urow = mysql_query($cmd, $link) or die('admin-5-' . mysql_error());
             list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = mysql_fetch_row($urow);
@@ -653,9 +654,9 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
         $uip = '0.0.0.0';
         $refu = 'http://' . getdomain() . '/preview_signup.html';
     }
-    //echo 'subject: '.$subj;
-    //echo 'msg: '.$msg;
-    //echo '$htmsg: '.$htmsg;
+    //echo 'subject: '.$subj;//debug
+    //echo 'msg: '.$msg;//debug
+    //echo '$htmsg: '.$htmsg;//debug//debug
     while (list($k, $v) = each($inarr)) {
         if ($v) {
             $xmsg = $v;
@@ -762,7 +763,7 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
                             if ($data5 == '3')
                                 $rlink .= "u=$cid,$usid";
                             if ($data5 == '4')
-                                $rlink .= "x=$cid&l=$lnum&e=$email";
+                                $rlink .= "x=$cid&l=$lnum&e=$email";//echo 'unsubscribe: '.$rlink.'<br>';//debug
                             if ($data5 == '5')
                                 $rlink .= "x=$cid,$lnum,$email";
 
@@ -1094,7 +1095,7 @@ function processmsg2($id, $usid,$lnum, $fname, $lname, $email,$refu,$uip,$user1,
 
                         case 'remcnfht' :
                             $bcode = "<form name=rconf method=post>
-<input type=hidden name=list value=$list>
+<input type=hidden name=list value=$lnum>
 <input type=hidden name=dodel value=1>
 <input type=hidden name=u value=$usid>
 <input type=hidden name=r value=$r>
@@ -1346,6 +1347,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
     global $html_to_aol;
     global $windows;
     global $smtp_debug;
+    global $link;
 
     // include('./config.php');
     require_once('./mimeclass.php');
@@ -1536,7 +1538,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                     $srvmsg = getsmtpmsg($ssock);
                     if ($smtp_debug)
                         logwrite($bugf, $srvmsg);
-                    if($smtp_debug) logwrite($bugf,'Is this where I think it is?');
+                    //if($smtp_debug) logwrite($bugf,'Is this where I think it is?');
                     $lastmsg = substr($srvmsg, 0, 3);
                     if ($lastmsg <> "250") {
                         if ($lastmsg == "500") {
@@ -1788,13 +1790,13 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
     // queue loop !!!
     // read from lm_sendq and process..
     $cmd = "select id,mtype,uid,lid,mid,xtra from $otable where bat = '$batch'";
-    echo $cmd;//debug
+    //echo $cmd;//debug
     $mrows = @mysql_query($cmd) or die('admin-16-' . mysql_error());
     if ($sqldebug)
         echo "CMD=<b>$cmd</b><br>";
 
     // display send box
-    $nmails = @mysql_num_rows($mrows);echo 'number of mails: '.$nmails;//debug
+    $nmails = @mysql_num_rows($mrows);//echo 'number of mails: '.$nmails;//debug
     $skipped = 0;
     $txsize = strlen($nmails);
     $timeleft = 0;
@@ -1820,6 +1822,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
     if (@mysql_num_rows($mrows) > 0) {
         $first = 1;
         while (list($oid, $mtype, $uid, $lid, $msgid, $xtra) = mysql_fetch_row($mrows)) {
+            echo 'oid='.$oid.'<br>';
             if ($first) {
                 $lastmid = $msgid;
                 $lastmt = $mtype;
@@ -1828,7 +1831,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
             $skiptonext = '';
             $nouser = '';
             $error = '';
-            echo 'oid '.$oid.', uid='.$uid.', lid='.$lid.', mtype='.$mtype.'<br>';//debug 
+            //echo 'oid '.$oid.', uid='.$uid.', lid='.$lid.', mtype='.$mtype.'<br>';//debug 
             if ($mtype <> '5') {
                 //Get list remote info
                 $lcmd = "select remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = $list";
@@ -1837,7 +1840,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                 list($remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = mysql_fetch_row($lrows);
                 echo 'remote='.$remote;//debug
                 // get user send vars
-                $ucmd = "select uid,list,fname,lname,email,htmail,bounces from $utable where id = '$uid'";
+                $ucmd = "select id,uid,list,fname,lname,email,htmail,bounces from $utable where id = '$uid'";
                 echo $ucmd.'<br>';//debug
                 if($remote){
                     try {
@@ -1847,14 +1850,14 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                         die('admin-39-' . $e->getMessage());
                     }
                     $dbh_query = $dbh->query($ucmd);
-                    list($unid, $mlist, $fname, $lname, $email, $htmail, $bounces) = $dbh_query->fetch(); //assuming there will only be 1 unique userid
+                    list($id, $unid, $mlist, $fname, $lname, $email, $htmail, $bounces) = $dbh_query->fetch(); //assuming there will only be 1 unique userid
                     $rcount = $dbh_query->rowCount();
                     echo 'email: '.$email.'<br> rcount='.$rcount.'<br>';//debug
                     $dbh = null; //close the connection
                 }else{
-                    $urow = mysql_query($ucmd, $link) or die('admin-17-' . mysql_error());
-                    list($unid, $mlist, $fname, $lname, $email, $htmail, $bounces) = mysql_fetch_row($urow);
-                    $rcount = @mysql_num_rows($urow);
+                    $urow = mysql_query($ucmd, $link) or die('admin-17-' . mysql_error());echo mysql_error();   
+                    list($id, $unid, $mlist, $fname, $lname, $email, $htmail, $bounces) = mysql_fetch_row($urow);
+                    $rcount = @mysql_num_rows($urow);echo 'user='.$email;//debug
                 }
                 //$urow = mysql_query($ucmd) or die('admin-17-' . mysql_error());
                 if ($rcount == 0) {
@@ -1870,7 +1873,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                     // echo "UID=$uid UNID=$unid  EMAIL=$email<br>";
                 }
             } else
-                $nouser = '';echo 'nouser='.$nouser;//debug
+                $nouser = '';//echo 'nouser='.$nouser;//debug
 
             if (!$nouser) {
                 // get message
@@ -1966,11 +1969,11 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                 } else {
                     // not admin msg, continue
                     $cmd = "select sendn,sende from $ltable where listnum = '$mlist'";
-                    echo $cmd.'<br>';//debug
+                    //echo $cmd.'<br>';//debug
                     $lrow = @mysql_query($cmd) or die('admin-25-' . mysql_error());
                     if ($sqldebug)
                         echo "CMD=<b>$cmd</b><br>";
-                    list($sendn, $sende) = @mysql_fetch_row($lrow);echo $sendn.' and '.$sende.'<br>';//debug
+                    list($sendn, $sende) = @mysql_fetch_row($lrow);//echo $sendn.' and '.$sende.'<br>';//debug
 //    echo "got list settings<br>"; flush();
                 }
 
@@ -1983,7 +1986,10 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                     if ($mtype <> '5') {
                         if ($timedebug)
                             $stime = mtime();
-                        list($xsubj, $xmsg, $xhtmsg) = processmsg($uid, $subj, $msg, $htmsg, '0', $mtype, $msgid);
+                        //list($xsubj, $xmsg, $xhtmsg) = processmsg($uid, $subj, $msg, $htmsg, '0', $mtype, $msgid);
+                        list($xsubj, $xmsg, $xhtmsg) = processmsg2($id, $uid, $mlist, $fname, $lname, $email, '', '', '', '', '', '', '', '','','','','', $subj,'',$htmsg,'0',$mtype,$msgid);
+                        //list($unid, $mlist, $fname, $lname, $email, $htmail, $bounces)
+                        //processmsg2($id, $usid,$lnum, $fname, $lname, $email,$refu,$uip,$user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '', $mid = '', $r = '') 
                         if ($timedebug)
                             $time = mtime() - $stime;
                         if ($timedebug)
@@ -2050,7 +2056,8 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
 
                     // build final message
                     // default charset for MIME message, improve this.
-                    $dcharset = "iso-8859-1";
+                    //$dcharset = "iso-8859-1";
+                    $dcharset = "UTF-8";
                     if ($charset)
                         $bchar = $charset; else
                         $bchar = $dcharset;
@@ -2134,11 +2141,12 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                     if ($smtpsend)
                         $header .= "$crlf";
 
+                    /*
                     if (($htmsg && $htmail && !$textonly) || $fatt) {
                         $header .= $crlf . "This is a multipart message in MIME format.";
                         if ($smtpsend)
                             $header .= $crlf . $crlf;
-                    } else
+                    } else*/
                     if ($smtpsend)
                         $header .= "$crlf";
                     if ($timedebug)
@@ -2541,7 +2549,11 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                                 $themesg = str_replace("\r\n.", "\r\n..", $themesg);
                                 $xmsg = str_replace('<', '&lt;', $themesg);
                                 $xmsg = str_replace('>', '&gt;', $xmsg);
-                                if ($smtp_debug) logwrite($bugf,$xmsg);
+                                if ($smtp_debug){
+                                    //Truncate the message so that the log file won't get too big
+                                    $log_xmsg = substr($xmsg,0,3000);
+                                    logwrite($bugf,$log_xmsg.'\r\n...<truncated at 3000 char>...\r\n');
+                                }
 
                                 if ($smtp_debug)
                                     logwrite($bugf, "> SENT DATA\r\n");
@@ -3471,7 +3483,8 @@ function sendwelcome($userid,$list) {
 
     // build final message
     // default charset for MIME message, improve this.
-    $dcharset = "iso-8859-1";
+    //$dcharset = "iso-8859-1";
+    $dcharset = "UTF-8";
     if ($charset)
         $bchar = $charset; else
         $bchar = $dcharset;
@@ -3506,7 +3519,7 @@ function sendwelcome($userid,$list) {
     
 
     if (($htmsg && $htmail && !$textonly) || $fatt) {
-        $header .= $crlf . "This is a multipart message in MIME format.";
+        //$header .= $crlf . "This is a multipart message in MIME format.";
     }
 
     // send email
@@ -4265,7 +4278,7 @@ function addlists($email, $list, $opt = '', $multis = '') {
                 $debug_query = "insert into $utable values('','$uniq_str','$v','" . addslashes($a3) . "','" . addslashes($a4) . "','" . addslashes($a5) . "','" . addslashes($a6) . "','" . addslashes($a7) . "','" . addslashes($a8) . "','" . addslashes($a9) . "','" . addslashes($a10) . "','" . addslashes($a11) . "','" . addslashes($a12) . "','" . addslashes($a13) . "','" . addslashes($a14) . "','" . addslashes($a15) . "','$seq','$del','1','$dateadd','" . addslashes($a20) . "','" . addslashes($a21) . "','" . addslashes($a22) . "','" . addslashes($a23) . "');";
                 mysql_query("insert into $utable values('','$uniq_str','$v','" . addslashes($a3) . "','" . addslashes($a4) . "','" . addslashes($a5) . "','" . addslashes($a6) . "','" . addslashes($a7) . "','" . addslashes($a8) . "','" . addslashes($a9) . "','" . addslashes($a10) . "','" . addslashes($a11) . "','" . addslashes($a12) . "','" . addslashes($a13) . "','" . addslashes($a14) . "','" . addslashes($a15) . "','$seq','$del','1','$dateadd','" . addslashes($a20) . "','" . addslashes($a21) . "','" . addslashes($a22) . "','" . addslashes($a23) . "');");
                 //debug
-                echo '<span>' . $debug_query . '</span>';
+                //echo '<span>' . $debug_query . '</span>';
                 //debug
                 if (!$f)
                     $ly .= ',';
