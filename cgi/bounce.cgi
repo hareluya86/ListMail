@@ -5,7 +5,7 @@
 # Modify this file to contain your ListMail URL, place it in your cgi-bin directory and CHMOD it to 755.
 
 # Full URL to ListMail, no trailing slash
-$listmail_url = "http://www.DOMAIN.com/mail";
+$listmail_url = "http://ec2-54-213-182-145.us-west-2.compute.amazonaws.com/Listmail";
 
 # Program and paramaters to pass URL to
 # Usually works as default (may be /usr/local/bin/wget or other)

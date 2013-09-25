@@ -11,7 +11,7 @@ include("./airnav_migration.php");
 // test connection
 
 
-$csv = fopen('./list/special characters.csv','r');
+$csv = fopen('./list/Subscribers_special.csv','r');
 $file_index = 1;
 $record_count = 0;
 $batch_size = 1000;
@@ -32,7 +32,7 @@ while(list($id,$uid,$list,$fname,$lname,$email,$user1,$user2,
             }
             echo "Connected!";
             mysql_select_db($sqldb,$res);
-            //mysql_query($sqlcmd) or die('admin-12-' . mysql_error());
+            mysql_query($sqlcmd) or die('admin-12-' . mysql_error());
             
         }
         $sqlcmd = "INSERT INTO ".$utable." VALUES ($id,'$uid',$list,'$fname','$lname','$email','$user1','$user2',
@@ -64,8 +64,8 @@ if($sqlcmd){
     }
     echo "Connected!";
     mysql_select_db($sqldb,$res);
-    echo $sqlcmd.'<br>';
-    //mysql_query($sqlcmd) or die('admin-12-' . mysql_error());
+    //echo $sqlcmd.'<br>';
+    mysql_query($sqlcmd) or die('admin-12-' . mysql_error());
     
 }
 ?>
