@@ -596,10 +596,9 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
     $prow = mysql_query("select linkcode,keycode,listmailpath,ktrack from $ctable where 1", $link) or die('admin-4-' . mysql_error());
     list($linkch, $keych, $lmpath, $ktr) = mysql_fetch_row($prow);
     $inarr = array($subj, $msg, $htmsg);
-    //echo 'Retrieved from database fresh';
-    //echo 'subject: '.$subj;
-    //echo 'msg: '.$msg;
-    //echo '$htmsg: '.$htmsg;
+    //echo 'subject: '.$subj;//debug
+    //echo 'msg: '.$msg;//debug
+    //echo '$htmsg: '.$htmsg;//debug
     if (!$uid && !$pre)
         return $inarr;
 
@@ -612,11 +611,10 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
         list($ltitle,$remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = @mysql_fetch_row($lrow);
     } else
         $ltitle = 'Preview List';
-    
-    //echo 'Get list title';
-    //echo 'subject: '.$subj;
-    //echo 'msg: '.$msg;
-    //echo '$htmsg: '.$htmsg;
+
+    //echo 'subject: '.$subj;//debug
+    //echo 'msg: '.$msg;//debug
+    //echo '$htmsg: '.$htmsg;//debug
     if (!$pre) {
         // get user info
         $cmd = "select id,uid,list,fname,lname,email,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,dateadd,ipaddr,refurl from $utable where id = '$uid'";
@@ -656,10 +654,9 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
         $uip = '0.0.0.0';
         $refu = 'http://' . getdomain() . '/preview_signup.html';
     }
-    //echo 'After getting local user info';
-    //echo 'subject: '.$subj;
-    //echo 'msg: '.$msg;
-    //echo '$htmsg: '.$htmsg;
+    //echo 'subject: '.$subj;//debug
+    //echo 'msg: '.$msg;//debug
+    //echo '$htmsg: '.$htmsg;//debug//debug
     while (list($k, $v) = each($inarr)) {
         if ($v) {
             $xmsg = $v;
@@ -720,7 +717,6 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
                 echo "CMD=<b>$cmd</b><br>";
             while (list($cid, $ref, $typ, $data1, $data2, $data3, $data4, $data5) = @mysql_fetch_row($drows)) {
                 // process each code
-                //echo 'process each code';
                 if ($ref)
                     switch ($typ) {
                         // fname,lname,fullname,remove,text,date,user1-10
@@ -898,8 +894,6 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
                 // $xmsg = str_replace("\r","\\r",str_replace("\n","\\n\n",$xmsg));
                 // echo "<textarea rows=20 cols=50>$xmsg</textarea>";
                 $outarr[$k] = $xmsg;
-                //echo 'replacing message codes';
-                //echo '"'.$outarr[$k].'"'.$outarr[$v];
             } // end each msg while
         } // if v
     } // msgwhile
