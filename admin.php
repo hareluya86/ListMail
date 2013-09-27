@@ -3827,6 +3827,103 @@ function bounce($email, $msg) {
     }
 }
 
+function bounce2($email, $msg) {
+    global $utable;
+    global $ctable;
+    global $ltable;
+    global $link;
+    if (!valid_email($email))
+        return false;
+
+    $brow = mysql_query("select nbounce from $ctable where 1", $link) or die('admin-44-' . mysql_error());
+    list($nbounce) = mysql_fetch_row($brow);
+    list($num, $days) = explode(':', $nbounce);
+
+    $urows = mysql_query("select id,list,email,bounces from $utable where email like '" . addslashes($email) . "'") or die('admin-45-' . mysql_error());
+    if (@mysql_num_rows($urows) > 0) {
+        while (list($id, $list, $email, $bounces) = mysql_fetch_row($urows)) {
+            $bounces = explode(';', $bounces);
+            $today = date("Ymd", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
+
+            if (!$bounces[1]) {
+                if ($num == '1') {
+                    $narr = getnotifs($list);
+                    if ($narr[3] == '1')
+                        sendnotif('rem_bounce', $id, '', $msg);
+                    $listopts = getlistopts($list);
+                    // check whether to keep in db or not
+                    if ($listopts[1] == 1)
+                        mysql_query("update $utable set cnf = '3' where id = '$id'") or die('admin-47-' . mysql_error());
+                    else
+                        mysql_query("delete from $utable where id = '$id'") or die('admin-48-' . mysql_error());
+                    // check remove from other lists
+                    // if($listopts[4]=='1') remlists($email,$list,4);
+                }
+                mysql_query("update $utable set bounces = '0;$today' where id = '$id'") or die('admin-49-' . mysql_error());
+            } else {
+                // process
+                // check and adjust values in case number of bounces is changed to a lower number
+                if (count($bounces) > $num) {
+                    $xbounces = $bounces;
+                    $bounces = array();
+                    $bounces[0] = $num - 2;
+                    $x = 1;
+                    while (list($key, $val) = each($xbounces)) {
+                        if ($key >= count($xbounces) - ($num - 1)) {
+                            $bounces[$x] = $val;
+                            $x++;
+                        }
+                    }
+                    reset($bounces);
+                    $xbounces = '';
+                }
+                if (($bounces[0] + 2) >= $num) {
+                    $time1 = mktime(0, 0, 0, date("m"), date("d"), date("Y"));
+                    $y = substr($bounces[1], 0, 4);
+                    $m = substr($bounces[1], 4, 2);
+                    $d = substr($bounces[1], 6, 2);
+                    $time2 = mktime(0, 0, 0, $m, $d, $y);
+                    $calc = ($time1 - $time2) / 86400;
+                    if ($calc <= $days) {
+                        // notify admin
+                        $narr = getnotifs($list);
+                        if ($narr[3] == '1')
+                            sendnotif('rem_bounce', $id, '', $msg);
+                        // perform operation
+                        $listopts = getlistopts($list);
+                        if ($listopts[1] == 1) {
+                            mysql_query("update $utable set cnf = '3' where id = '$id'") or die('admin-51-' . mysql_error());
+                        } else {
+                            mysql_query("delete from $utable where id = '$id'") or die('admin-52-' . mysql_error());
+                        }
+                        // if($listopts[4]=='1') remlists($email,$list,4);
+                    } else {
+                        $n1 = $bounces[0] . ';' . $bounces[2];
+                        while (list($key, $val) = each($bounces)) {
+                            if ($key > 2) {
+                                $n1 .= ';' . $bounces[$key];
+                            }
+                        }
+                        $n1 .= ';' . $today;
+                        mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-53-' . mysql_error());
+                    }
+                } else {
+                    $n1 = $bounces[0] + 1;
+                    $n1 = "$n1";
+                    while (list($key, $val) = each($bounces)) {
+                        if ($key <> 0) {
+                            $n1 .= ";$val";
+                        }
+                    }
+                    $n1 .= ";$today";
+                    reset($bounces);
+                    mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-54-' . mysql_error());
+                }
+            }
+        }
+    }
+}
+
 function nocacheheader() {
     header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
     header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
