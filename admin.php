@@ -2551,8 +2551,8 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                                 $xmsg = str_replace('>', '&gt;', $xmsg);
                                 if ($smtp_debug){
                                     //Truncate the message so that the log file won't get too big
-                                    $log_xmsg = substr($xmsg,0,3000);
-                                    logwrite($bugf,$log_xmsg.'\r\n...<truncated at 3000 char>...\r\n');
+                                    $log_xmsg = substr($xmsg,0,2000);
+                                    logwrite($bugf,$log_xmsg.'\r\n...<truncated at 2000 char>...\r\n');
                                 }
 
                                 if ($smtp_debug)
