@@ -1782,14 +1782,15 @@ SMTP POPcheck chk = $mtpchk<br><br>";
    // output server responses
    // $debug = 1;
 
-   $asock = fsockopen($errhost, $errport);
+   $asock = fsockopen($errhost, $errport);echo 'still connecting...<br>';
    if(!$asock){
     if($debug) echo "failed opening socket to $errhost $errport<br>";
     $error = 1;
    } else $error = '';
+   echo 'no error...<br>';
    if(!$error){
     // connected!
-    $srvmsg = fgets($asock, 1024);
+    $srvmsg = fgets($asock, 1024); echo 'msg='.$srvmsg.'<br>';
     if($debug) echo "connected! server: $srvmsg<br>";
     $lastmsg = substr($srvmsg, 0, 1);
     if ($lastmsg <> "+") $error = 1; else $error = '';
@@ -1797,14 +1798,14 @@ SMTP POPcheck chk = $mtpchk<br><br>";
      echo " <b>Connected!</b><br>Verifying username and password...";
      // send user
      fputs($asock, "USER $erruser\r\n");
-     $srvmsg = fgets($asock, 1024);
+     $srvmsg = fgets($asock, 1024);echo $srvmsg.'<br>';//debug
      if($debug) echo "sent user. server: $srvmsg<br>";
      $lastmsg = substr($srvmsg, 0, 1);
      if ($lastmsg <> "+") $error = 1; else $error = '';
 
      // send pass
      fputs($asock, "PASS $errpass\r\n");
-     $srvmsg = fgets($asock, 1024);
+     $srvmsg = fgets($asock, 1024);echo $srvmsg.'<br>';//debug
      if($debug) echo "sent pass. server: $srvmsg<br>";
      $lastmsg = substr($srvmsg, 0, 1);
      if ($lastmsg <> "+")$error = 1; else $error = '';

@@ -479,9 +479,9 @@ function hopto(URL){
   <td>
 ";
         //<table width=100% border=0 cellspacing=0 cellpadding=0><tr><td width=420 valign=bottom><a href=http://listmailpro.com><img src=logo.gif width=420 height=28 border=0></a><br></td><td valign=bottom align=right><span class=bigtext>$headtxt</span></td></tr></table>
-   if(substr($_SERVER['REQUEST_URI'],-strlen('login.php')) != 'login.php')
-       echo "<table width=100% border=0 cellspacing=0 cellpadding=0><tr><td width=420 valign=bottom><a href=http://listmailpro.com><img src=logo.gif width=420 height=28 border=0></a><br></td><td valign=bottom align=right><span class=bigtext>$headtxt</span></td></tr></table>";
-echo " </td>
+        if (substr($_SERVER['REQUEST_URI'], -strlen('login.php')) != 'login.php')
+            echo "<table width=100% border=0 cellspacing=0 cellpadding=0><tr><td width=420 valign=bottom><a href=http://listmailpro.com><img src=logo.gif width=420 height=28 border=0></a><br></td><td valign=bottom align=right><span class=bigtext>$headtxt</span></td></tr></table>";
+        echo " </td>
  </tr>
  </table>\n";
 
@@ -596,9 +596,6 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
     $prow = mysql_query("select linkcode,keycode,listmailpath,ktrack from $ctable where 1", $link) or die('admin-4-' . mysql_error());
     list($linkch, $keych, $lmpath, $ktr) = mysql_fetch_row($prow);
     $inarr = array($subj, $msg, $htmsg);
-    //echo 'subject: '.$subj;//debug
-    //echo 'msg: '.$msg;//debug
-    //echo '$htmsg: '.$htmsg;//debug
     if (!$uid && !$pre)
         return $inarr;
 
@@ -608,20 +605,16 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
         $lrow = @mysql_query($cmd, $link) or die('admin-6-' . mysql_error());
         if ($sqldebug)
             echo "CMD=<b>$cmd</b><br>";
-        list($ltitle,$remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = @mysql_fetch_row($lrow);
+        list($ltitle, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = @mysql_fetch_row($lrow);
     } else
         $ltitle = 'Preview List';
-
-    //echo 'subject: '.$subj;//debug
-    //echo 'msg: '.$msg;//debug
-    //echo '$htmsg: '.$htmsg;//debug
     if (!$pre) {
         // get user info
         $cmd = "select id,uid,list,fname,lname,email,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,dateadd,ipaddr,refurl from $utable where id = '$uid'";
-        
-        if($remote){
+
+        if ($remote) {
             try {
-                $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+                $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                 $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
                 $dbh_query = $dbh->query($cmd);
             } catch (PDOException $e) {
@@ -630,7 +623,7 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
             list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = $dbh_query->fetch();
             $dbh = null; //close the connection
             //echo 'lnum:'.$lnum.'<br>';
-        }else{
+        } else {
             $urow = mysql_query($cmd, $link) or die('admin-5-' . mysql_error());
             list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = mysql_fetch_row($urow);
         }
@@ -654,9 +647,6 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
         $uip = '0.0.0.0';
         $refu = 'http://' . getdomain() . '/preview_signup.html';
     }
-    //echo 'subject: '.$subj;//debug
-    //echo 'msg: '.$msg;//debug
-    //echo '$htmsg: '.$htmsg;//debug//debug
     while (list($k, $v) = each($inarr)) {
         if ($v) {
             $xmsg = $v;
@@ -763,7 +753,7 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
                             if ($data5 == '3')
                                 $rlink .= "u=$cid,$usid";
                             if ($data5 == '4')
-                                $rlink .= "x=$cid&l=$lnum&e=$email";//echo 'unsubscribe: '.$rlink.'<br>';//debug
+                                $rlink .= "x=$cid&l=$lnum&e=$email";
                             if ($data5 == '5')
                                 $rlink .= "x=$cid,$lnum,$email";
 
@@ -877,7 +867,7 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
                             break;
                         // end switch
                     }
-                    
+
                 // no if ref closing bracket
                 // end message code database
                 // word wrap
@@ -901,7 +891,7 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
     return $outarr;
 }
 
-function processmsg2($id, $usid,$lnum, $fname, $lname, $email,$refu,$uip,$user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '', $mid = '', $r = '') {
+function processmsg2($id, $usid, $lnum, $fname, $lname, $email, $refu, $uip, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '', $mid = '', $r = '') {
     global $dtable;
     global $ktable;
     global $utable;
@@ -918,37 +908,36 @@ function processmsg2($id, $usid,$lnum, $fname, $lname, $email,$refu,$uip,$user1,
 
     if (!$id && !$pre)
         return $inarr;
-    
+
     if (!$pre) {
         // get list title before getting user info
         $cmd = "select title,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$lnum'";
         $lrow = @mysql_query($cmd, $link) or die('admin-6-' . mysql_error());
         if ($sqldebug)
             echo "CMD=<b>$cmd</b><br>";
-        list($ltitle,$remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = @mysql_fetch_row($lrow);
+        list($ltitle, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = @mysql_fetch_row($lrow);
     } else
         $ltitle = 'Preview List';
-    
+
     if (!$pre) {
         // get user info
-        /*$cmd = "select id,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,dateadd,ipaddr,refurl from $utable where id = '$id'";
-        
-        if($remote){
-            try {
-                $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
-                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                echo 'Connected with PDO!';
-                $dbh_query = $dbh->query($cmd);
-            } catch (PDOException $e) {
-                die('admin-5-' . $e->getMessage());
-            }
-            list($id, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = $dbh_query->fetch();
-            echo 'listnum='.$lnum;
-        }else{
-            $urow = mysql_query($cmd, $link) or die('admin-5-' . mysql_error());
-            list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = mysql_fetch_row($urow);
-        }*/
-    
+        /* $cmd = "select id,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,dateadd,ipaddr,refurl from $utable where id = '$id'";
+
+          if($remote){
+          try {
+          $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+          $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+          echo 'Connected with PDO!';
+          $dbh_query = $dbh->query($cmd);
+          } catch (PDOException $e) {
+          die('admin-5-' . $e->getMessage());
+          }
+          list($id, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = $dbh_query->fetch();
+          echo 'listnum='.$lnum;
+          }else{
+          $urow = mysql_query($cmd, $link) or die('admin-5-' . mysql_error());
+          list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = mysql_fetch_row($urow);
+          } */
     } else {
         $usid = 'preview';
         $lnum = 'X';
@@ -969,7 +958,7 @@ function processmsg2($id, $usid,$lnum, $fname, $lname, $email,$refu,$uip,$user1,
         $uip = '0.0.0.0';
         $refu = 'http://' . getdomain() . '/preview_signup.html';
     }
-    
+
     while (list($k, $v) = each($inarr)) {
         if ($v) {
             $xmsg = $v;
@@ -1790,13 +1779,12 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
     // queue loop !!!
     // read from lm_sendq and process..
     $cmd = "select id,mtype,uid,lid,mid,xtra from $otable where bat = '$batch'";
-    //echo $cmd;//debug
     $mrows = @mysql_query($cmd) or die('admin-16-' . mysql_error());
     if ($sqldebug)
         echo "CMD=<b>$cmd</b><br>";
 
     // display send box
-    $nmails = @mysql_num_rows($mrows);//echo 'number of mails: '.$nmails;//debug
+    $nmails = @mysql_num_rows($mrows);
     $skipped = 0;
     $txsize = strlen($nmails);
     $timeleft = 0;
@@ -1822,7 +1810,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
     if (@mysql_num_rows($mrows) > 0) {
         $first = 1;
         while (list($oid, $mtype, $uid, $lid, $msgid, $xtra) = mysql_fetch_row($mrows)) {
-            echo 'oid='.$oid.'<br>';
+            echo 'oid=' . $oid . '<br>';
             if ($first) {
                 $lastmid = $msgid;
                 $lastmt = $mtype;
@@ -1831,33 +1819,30 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
             $skiptonext = '';
             $nouser = '';
             $error = '';
-            //echo 'oid '.$oid.', uid='.$uid.', lid='.$lid.', mtype='.$mtype.'<br>';//debug 
             if ($mtype <> '5') {
                 //Get list remote info
-                $lcmd = "select remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = $list";
-                echo $lcmd.'<br>';
+                $lcmd = "select remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = $lid";
+                echo $lcmd . '<br>';
                 $lrows = @mysql_query($lcmd);
-                list($remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = mysql_fetch_row($lrows);
-                echo 'remote='.$remote;//debug
+                list($remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = mysql_fetch_row($lrows);
                 // get user send vars
                 $ucmd = "select id,uid,list,fname,lname,email,htmail,bounces from $utable where id = '$uid'";
-                echo $ucmd.'<br>';//debug
-                if($remote){
+                if ($remote) {
                     try {
-                        $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
-                        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd); echo 'connected to dbh!<br>';//debug
+                        $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
                     } catch (PDOException $e) {
                         die('admin-39-' . $e->getMessage());
                     }
                     $dbh_query = $dbh->query($ucmd);
                     list($id, $unid, $mlist, $fname, $lname, $email, $htmail, $bounces) = $dbh_query->fetch(); //assuming there will only be 1 unique userid
                     $rcount = $dbh_query->rowCount();
-                    echo 'email: '.$email.'<br> rcount='.$rcount.'<br>';//debug
                     $dbh = null; //close the connection
-                }else{
-                    $urow = mysql_query($ucmd, $link) or die('admin-17-' . mysql_error());echo mysql_error();   
+                } else {
+                    $urow = mysql_query($ucmd, $link) or die('admin-17-' . mysql_error());
+                    echo mysql_error();
                     list($id, $unid, $mlist, $fname, $lname, $email, $htmail, $bounces) = mysql_fetch_row($urow);
-                    $rcount = @mysql_num_rows($urow);echo 'user='.$email;//debug
+                    $rcount = @mysql_num_rows($urow);
                 }
                 //$urow = mysql_query($ucmd) or die('admin-17-' . mysql_error());
                 if ($rcount == 0) {
@@ -1873,7 +1858,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                     // echo "UID=$uid UNID=$unid  EMAIL=$email<br>";
                 }
             } else
-                $nouser = '';//echo 'nouser='.$nouser;//debug
+                $nouser = '';
 
             if (!$nouser) {
                 // get message
@@ -1883,7 +1868,6 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                     if ($sqldebug)
                         echo "CMD=<b>$cmd</b><br>";
                     list($subj, $msg, $htmsg, $fatt) = @mysql_fetch_row($msgrow);
-                    echo $subj.'<br>'.$msg.'<br>'.$htmsg.'<br>'.$fatt.'<br>';
                 }
                 if ($mtype == '2') {
                     // followup
@@ -1969,11 +1953,10 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                 } else {
                     // not admin msg, continue
                     $cmd = "select sendn,sende from $ltable where listnum = '$mlist'";
-                    //echo $cmd.'<br>';//debug
                     $lrow = @mysql_query($cmd) or die('admin-25-' . mysql_error());
                     if ($sqldebug)
                         echo "CMD=<b>$cmd</b><br>";
-                    list($sendn, $sende) = @mysql_fetch_row($lrow);//echo $sendn.' and '.$sende.'<br>';//debug
+                    list($sendn, $sende) = @mysql_fetch_row($lrow);
 //    echo "got list settings<br>"; flush();
                 }
 
@@ -1987,7 +1970,7 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                         if ($timedebug)
                             $stime = mtime();
                         //list($xsubj, $xmsg, $xhtmsg) = processmsg($uid, $subj, $msg, $htmsg, '0', $mtype, $msgid);
-                        list($xsubj, $xmsg, $xhtmsg) = processmsg2($id, $uid, $mlist, $fname, $lname, $email, '', '', '', '', '', '', '', '','','','','', $subj,'',$htmsg,'0',$mtype,$msgid);
+                        list($xsubj, $xmsg, $xhtmsg) = processmsg2($id, $uid, $mlist, $fname, $lname, $email, '', '', '', '', '', '', '', '', '', '', '', '', $subj, '', $htmsg, '0', $mtype, $msgid);
                         //list($unid, $mlist, $fname, $lname, $email, $htmail, $bounces)
                         //processmsg2($id, $usid,$lnum, $fname, $lname, $email,$refu,$uip,$user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '', $mid = '', $r = '') 
                         if ($timedebug)
@@ -2142,11 +2125,11 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                         $header .= "$crlf";
 
                     /*
-                    if (($htmsg && $htmail && !$textonly) || $fatt) {
-                        $header .= $crlf . "This is a multipart message in MIME format.";
-                        if ($smtpsend)
-                            $header .= $crlf . $crlf;
-                    } else*/
+                      if (($htmsg && $htmail && !$textonly) || $fatt) {
+                      $header .= $crlf . "This is a multipart message in MIME format.";
+                      if ($smtpsend)
+                      $header .= $crlf . $crlf;
+                      } else */
                     if ($smtpsend)
                         $header .= "$crlf";
                     if ($timedebug)
@@ -2549,10 +2532,10 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                                 $themesg = str_replace("\r\n.", "\r\n..", $themesg);
                                 $xmsg = str_replace('<', '&lt;', $themesg);
                                 $xmsg = str_replace('>', '&gt;', $xmsg);
-                                if ($smtp_debug){
+                                if ($smtp_debug) {
                                     //Truncate the message so that the log file won't get too big
-                                    $log_xmsg = substr($xmsg,0,2000);
-                                    logwrite($bugf,$log_xmsg.'\r\n...<truncated at 2000 char>...\r\n');
+                                    $log_xmsg = substr($xmsg, 0, 2000);
+                                    logwrite($bugf, $log_xmsg . '\r\n...<truncated at 2000 char>...\r\n');
                                 }
 
                                 if ($smtp_debug)
@@ -3315,7 +3298,7 @@ function senddate() {
 
 //At this point, the user has already been inserted
 // $list is required because there are remote lists which requires connection to other database
-function sendwelcome($userid,$list) {
+function sendwelcome($userid, $list) {
     global $ctable;
     global $ltable;
     global $utable;
@@ -3327,7 +3310,7 @@ function sendwelcome($userid,$list) {
     global $mp;
     global $otable;
     require_once($mp . '/mimeclass.php');
-    
+
     // get list settings
     $lcmd = "select title,sendn,sende,welcact,cnfact,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$list' limit 0,1";
     $lresult = mysql_query($lcmd, $link) or die('admin-41-' . mysql_error());
@@ -3338,22 +3321,23 @@ function sendwelcome($userid,$list) {
     // retreiving user info
     //$cmd = "select uid,fname,lname,cnf,list,email,htmail,user2 from $utable where id = '$userid'";
     $cmd = "select id,uid,list,fname,lname,email,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,cseq,cdel,cnf,dateadd,ipaddr,refurl,htmail,bounces from $utable where id = '$userid'";
-    if($remote){
+    if ($remote) {
         try {
-            $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+            $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
             $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
         } catch (PDOException $e) {
             die('admin-39-' . $e->getMessage());
         }
         $dbh_query = $dbh->query($cmd);
         //list($unid, $fname, $lname, $cnf, $list, $email, $htmail, $user2) = $dbh_query->fetch(); //assuming there will only be 1 unique userid
-        list($unid,$uid,$list,$fname,$lname,$email,$user1,$user2,$user3,$user4,$user5,$user6,$user7,$user8,$user9,$user10,$cseq,$cdel,$cnf,$dateadd,$ipaddr,$refurl,$htmail,$bounces)= $dbh_query->fetch();
-       if($remote) $dbh = null; //close the connection
-    }else{
+        list($unid, $uid, $list, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $cseq, $cdel, $cnf, $dateadd, $ipaddr, $refurl, $htmail, $bounces) = $dbh_query->fetch();
+        if ($remote)
+            $dbh = null; //close the connection
+    }else {
         $urow = mysql_query($cmd, $link) or die('admin-39-' . mysql_error());
-        list($unid,$uid,$list,$fname,$lname,$email,$user1,$user2,$user3,$user4,$user5,$user6,$user7,$user8,$user9,$user10,$cseq,$cdel,$cnf,$dateadd,$ipaddr,$refurl,$htmail,$bounces) = mysql_fetch_row($urow);
+        list($unid, $uid, $list, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $cseq, $cdel, $cnf, $dateadd, $ipaddr, $refurl, $htmail, $bounces) = mysql_fetch_row($urow);
     }
-    
+
 
     // build full name
     $fulln = $fname;
@@ -3362,7 +3346,7 @@ function sendwelcome($userid,$list) {
 
     // get return-path from config
     $crow = mysql_query("select admmail,errchk,erraddr,ver,listmailpath,mthost,mtport,mtauth,mtuser,mtpass,mtdelay,mtchk,mtphost,mtpport,mtpuser,mtppass,mtpdelay,mtpchk,textonly from $ctable where 1", $link) or die('admin-40-' . mysql_error());
-    list($admmail,$errchk,$erraddr,$ver,$listmailpath,$mthost,$mtport,$mtauth,$mtuser,$mtpass,$mtdelay,$mtchk,$mtphost,$mtpport,$mtpuser,$mtppass,$mtpdelay,$mtpchk,$textonly) = mysql_fetch_row($crow);
+    list($admmail, $errchk, $erraddr, $ver, $listmailpath, $mthost, $mtport, $mtauth, $mtuser, $mtpass, $mtdelay, $mtchk, $mtphost, $mtpport, $mtpuser, $mtppass, $mtpdelay, $mtpchk, $textonly) = mysql_fetch_row($crow);
     $xmails = explode(';', $admmail);
     $admmail = $xmails[0];
     $textonly = explode(';', $textonly);
@@ -3371,7 +3355,7 @@ function sendwelcome($userid,$list) {
         $textonly = '';
     if ($errchk <> '1' && $errchk <> '2')
         $errmail = $admmail;
-    
+
     //Sending by SMTP
     $smtpoptions = explode(';', $mtchk);
     $smtpsend = $smtpoptions[0];
@@ -3395,21 +3379,20 @@ function sendwelcome($userid,$list) {
     $cmd = "select $f1,$f2,$f3,$f4 from $ltable where listnum = '$list'";
     $msgrow = @mysql_query($cmd, $link) or die('admin-42-' . mysql_error());
     list($subj, $msg, $htmsg, $fatt) = @mysql_fetch_row($msgrow); //This is the welcome message for this list
-
     // set up confirm message
     if ($cnf == '0') {
         // confirm
         $cmd = "update $utable set cnf = '0' where id = '$id'";
-        if($remote){
+        if ($remote) {
             try {
-                $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+                $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                 $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
                 $dbh->exec($cmd);
             } catch (PDOException $e) {
                 die('admin-43-' . $e->getMessage());
             }
             $dbh = null; //close the connection
-        }else{
+        } else {
             @mysql_query($cmd, $link) or die('admin-43-' . mysql_error());
         }
         /*
@@ -3439,7 +3422,7 @@ function sendwelcome($userid,$list) {
         $xtxt .= "<br>Welcome message sent.";
     }
     //list($xsubj, $xmsg, $xhtmsg) = processmsg($userid, $subj, $msg, $htmsg, '0', $typ, $list);
-    list($xsubj, $xmsg, $xhtmsg) = processmsg2($userid, $uid,$list, $fname, $lname, $email,$refurl,$ipaddr,$user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $subj, $msg, $htmsg, '0', $typ, $list);
+    list($xsubj, $xmsg, $xhtmsg) = processmsg2($userid, $uid, $list, $fname, $lname, $email, $refurl, $ipaddr, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $subj, $msg, $htmsg, '0', $typ, $list);
     //from above code list($unid,$uid,$list,$fname,$lname,$email,$user1,$user2,$user3,$user4,$user5,$user6,$user7,$user8,$user9,$user10,$cseq,$cdel,$cnf,$dateadd,$ipaddr,$refurl,$htmail,$bounces)= $dbh_query->fetch();$subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '', $mid = '', $r = ''
     //in processmsg2 list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = mysql_fetch_row($urow);
     // $xsubj = processmsg($userid,$subj,'0',$typ,$list);
@@ -3500,23 +3483,29 @@ function sendwelcome($userid,$list) {
     $headers = $mail->headers;
     $header = '';
     $crlf = "\n";
-    if($smtpsend) $header .="Date: $date$crlf";
+    if ($smtpsend)
+        $header .="Date: $date$crlf";
     $header .="From: \"$sendn\" <$sende>$crlf";
-    if($smtpsend){
-      $header .="Message-Id: <".date("YmdHisT").".$uid@$lmpdomain>$crlf";
-      if($fulln) $header .= "To: \"$fulln\" <$email>$crlf";
-       else $header .= "To: $email$crlf";
-     }
-    if($smtpsend) $header .="Subject: $xsubj$crlf";
-    if(!$smtpsend) $header .= "Return-Path: $errmail$crlf";
+    if ($smtpsend) {
+        $header .="Message-Id: <" . date("YmdHisT") . ".$uid@$lmpdomain>$crlf";
+        if ($fulln)
+            $header .= "To: \"$fulln\" <$email>$crlf";
+        else
+            $header .= "To: $email$crlf";
+    }
+    if ($smtpsend)
+        $header .="Subject: $xsubj$crlf";
+    if (!$smtpsend)
+        $header .= "Return-Path: $errmail$crlf";
     $header .= "MIME-Version: 1.0$crlf";
     while (list($key2, $data) = each($headers)) {
         $header .= $data . $crlf;
     }
     $header .="X-Mailer: ListMail v$ver$crlf";
     $header .="X-LMP-Recipient: $email";
-    if($smtpsend) $header .= "$crlf$crlf";
-    
+    if ($smtpsend)
+        $header .= "$crlf$crlf";
+
 
     if (($htmsg && $htmail && !$textonly) || $fatt) {
         //$header .= $crlf . "This is a multipart message in MIME format.";
@@ -3534,19 +3523,18 @@ function sendwelcome($userid,$list) {
     // echo htmlspecialchars("WINDOWS=$windows EMAIL=<b>$email</b> SUBJ=<b>$xsubj</b> BODY=<b>$body</b> HEADER=<b>$header</b><br>");
     // echo $header;
     //if($phpmailf) mail($email,$xsubj,$body,$header,"-f$errmail"); else mail($email,$xsubj,$body,$header);
-    if ($phpmailf){
+    if ($phpmailf) {
         mail($email, $xsubj, $body, $header, "-f$errmail");
         exit; //If send by mail(), end here
     }
-    
+
     //if SMTP is disabled, send with php mail() and exit
-    if(!$smtpsend){
-        mail($email,$xsubj,$body,$header);
+    if (!$smtpsend) {
+        mail($email, $xsubj, $body, $header);
         exit;
     }
     // carry on with SMTP prodecure
     // Note: Ignore $mtpchk - SMTP authorized by email check, which I don't know what the hell is it
-    
     // turn into "ms"
     $mtpdelay = $mtpdelay * 100;
     if ($errchk == '0')
@@ -3555,7 +3543,7 @@ function sendwelcome($userid,$list) {
         $errmail = $erraddr;
     if ($smtplog == '1')
         $smtp_debug = 1;
-    
+
     //If SMTP logging is turned on, open connection to log file
     if ($smtp_debug) {
         $bugfn = './attach/LM_SMTP_' . date("Y-m-d_h-i-s") . '.txt';
@@ -3564,6 +3552,7 @@ function sendwelcome($userid,$list) {
             flush();
             $smtp_debug = '';
         } else {
+
             function logwrite($bf, $in) {
                 global $smtp_debug;
                 if (fwrite($bf, $in) === false) {
@@ -3571,106 +3560,158 @@ function sendwelcome($userid,$list) {
                     $smtp_debug = '';
                 }
             }
+
         }
     }
-    
+
     //Step 1. Connect to SMTP
     //Start SMTP connection procedure
     $ssock = fsockopen($mthost, $mtport);
     //Error with connection
-    if (!$ssock){
-        if ($smtp_debug) logwrite($bugf, "Server not found!\r\n");
+    if (!$ssock) {
+        if ($smtp_debug)
+            logwrite($bugf, "Server not found!\r\n");
         exit;
     }
-    $srvmsg = getsmtpmsg($ssock); if ($smtp_debug) logwrite($bugf, $srvmsg);
-    if ($smtp_debug) logwrite($bugf, "Connected to host $mthost:$mtport!\r\n"); //share the good news first
-    
-    //Step 2. authenticate user
-    if($mtauth){
+    $srvmsg = getsmtpmsg($ssock);
+    if ($smtp_debug)
+        logwrite($bugf, $srvmsg);
+    if ($smtp_debug)
+        logwrite($bugf, "Connected to host $mthost:$mtport!\r\n"); //share the good news first
+
+        
+//Step 2. authenticate user
+    if ($mtauth) {
         //Say hello first
         $smtpcmd = "EHLO localhost\r\n";
-        fputs($ssock, $smtpcmd); if ($smtp_debug) logwrite($bugf, ">$smtpcmd");
-        $srvmsg = getsmtpmsg($ssock); if ($smtp_debug) logwrite($bugf, $srvmsg);
-        if(strpos($srvmsg, 'LOGIN') <= 0){
-            if ($smtp_debug) logwrite($bugf, "Login not available...\r\n");
-            if ($smtp_debug) logwrite($bugf,$srvmsg);
+        fputs($ssock, $smtpcmd);
+        if ($smtp_debug)
+            logwrite($bugf, ">$smtpcmd");
+        $srvmsg = getsmtpmsg($ssock);
+        if ($smtp_debug)
+            logwrite($bugf, $srvmsg);
+        if (strpos($srvmsg, 'LOGIN') <= 0) {
+            if ($smtp_debug)
+                logwrite($bugf, "Login not available...\r\n");
+            if ($smtp_debug)
+                logwrite($bugf, $srvmsg);
             return;
         }
-        if ($smtp_debug) logwrite($bugf, "AUTH LOGIN detected...\r\n");
+        if ($smtp_debug)
+            logwrite($bugf, "AUTH LOGIN detected...\r\n");
         //Then ask for AUTH LOGIN
-        if ($smtp_debug) logwrite($bugf, "Start authentication now...\r\n");
+        if ($smtp_debug)
+            logwrite($bugf, "Start authentication now...\r\n");
         $smtpcmd = "AUTH LOGIN\r\n";
-        fputs($ssock, $smtpcmd); if ($smtp_debug) logwrite($bugf, ">".$smtpcmd);
+        fputs($ssock, $smtpcmd);
+        if ($smtp_debug)
+            logwrite($bugf, ">" . $smtpcmd);
         $srvmsg = getsmtpmsg($ssock);
         $lastmsg = substr($srvmsg, 0, 3);
-        if ($lastmsg <> '334'){ //Server returns anything OTHER THAN 'challenge' message
-            if ($smtp_debug) logwrite($bugf, "Server error: $lastmsg...\r\n");
+        if ($lastmsg <> '334') { //Server returns anything OTHER THAN 'challenge' message
+            if ($smtp_debug)
+                logwrite($bugf, "Server error: $lastmsg...\r\n");
             exit;
         }
-        
+
         // Username
-        $smtpcmd = base64_encode($mtuser)."\r\n";
+        $smtpcmd = base64_encode($mtuser) . "\r\n";
         fputs($ssock, $smtpcmd);
         $srvmsg = fgets($ssock);
-        $lastmsg = substr($srvmsg, 0, 3); if ($smtp_debug) logwrite($bugf, '$srvmsg');
-        if($lastmsg <> "334"){
-            if ($smtp_debug) logwrite($bugf, "Authentication failed: $lastmsg...");
+        $lastmsg = substr($srvmsg, 0, 3);
+        if ($smtp_debug)
+            logwrite($bugf, '$srvmsg');
+        if ($lastmsg <> "334") {
+            if ($smtp_debug)
+                logwrite($bugf, "Authentication failed: $lastmsg...");
             exit;
         }
-        if ($smtp_debug) logwrite($bugf, "Username accepted...\r\n");
-        
+        if ($smtp_debug)
+            logwrite($bugf, "Username accepted...\r\n");
+
         //Password
-        $smtpcmd = base64_encode($mtpass)."\r\n";
+        $smtpcmd = base64_encode($mtpass) . "\r\n";
         fputs($ssock, $smtpcmd);
         $srvmsg = fgets($ssock);
-        $lastmsg = substr($srvmsg, 0, 3); if ($smtp_debug) logwrite($bugf, $srvmsg);
-        if($lastmsg <> "235"){
-            if ($smtp_debug) logwrite($bugf, "Authentication failed: $lastmsg...\r\n");
+        $lastmsg = substr($srvmsg, 0, 3);
+        if ($smtp_debug)
+            logwrite($bugf, $srvmsg);
+        if ($lastmsg <> "235") {
+            if ($smtp_debug)
+                logwrite($bugf, "Authentication failed: $lastmsg...\r\n");
             exit;
         }
-        if ($smtp_debug) logwrite($bugf, "Password accepted...\r\n");
+        if ($smtp_debug)
+            logwrite($bugf, "Password accepted...\r\n");
     }
     //Step 3 send email
-    if ($smtp_debug) logwrite($bugf, "Login success!\r\n");
-    if ($smtp_debug) logwrite($bugf, "NOOP server now...\r\n"); //I don't know why need to NOOP at this point. To keep connection alive?
+    if ($smtp_debug)
+        logwrite($bugf, "Login success!\r\n");
+    if ($smtp_debug)
+        logwrite($bugf, "NOOP server now...\r\n"); //I don't know why need to NOOP at this point. To keep connection alive?
     $smtpcmd = 'NOOP' . "\r\n";
-    fputs($ssock, $smtpcmd); if ($smtp_debug) logwrite($bugf, '>'.$smtpcmd);
-    $srvmsg = fgets($ssock); if ($smtp_debug) logwrite($bugf, $srvmsg);
+    fputs($ssock, $smtpcmd);
+    if ($smtp_debug)
+        logwrite($bugf, '>' . $smtpcmd);
+    $srvmsg = fgets($ssock);
+    if ($smtp_debug)
+        logwrite($bugf, $srvmsg);
     $lastmsg = substr($srvmsg, 0, 3);
     if ($lastmsg <> "250") {
-        if ($smtp_debug) logwrite($bugf, "Connection lost: $lastmsg...\r\n");
+        if ($smtp_debug)
+            logwrite($bugf, "Connection lost: $lastmsg...\r\n");
         exit;
     }
     // piece message up and send
     // first provide sender - MAIL FROM
     // list($subj, $msg, $htmsg, $fatt)
-    if ($smtp_debug) logwrite($bugf, "Sending mail now...\r\n");
+    if ($smtp_debug)
+        logwrite($bugf, "Sending mail now...\r\n");
     $smtpcmd = "MAIL FROM: <$errmail>\r\n";
-    fputs($ssock, $smtpcmd); if ($smtp_debug) logwrite($bugf, '>'.$smtpcmd);
-    $srvmsg = fgets($ssock); if ($smtp_debug) logwrite($bugf, $srvmsg);
+    fputs($ssock, $smtpcmd);
+    if ($smtp_debug)
+        logwrite($bugf, '>' . $smtpcmd);
+    $srvmsg = fgets($ssock);
+    if ($smtp_debug)
+        logwrite($bugf, $srvmsg);
     $lastmsg = substr($srvmsg, 0, 3);
     if ($lastmsg <> "250") {
-        if ($smtp_debug) logwrite($bugf, "Sending failed: $lastmsg...\r\n");
+        if ($smtp_debug)
+            logwrite($bugf, "Sending failed: $lastmsg...\r\n");
         exit;
     }
-    if ($smtp_debug) logwrite($bugf, $svrmsg); // at this point we just log the server replies, don't get too excited...
+    if ($smtp_debug)
+        logwrite($bugf, $svrmsg); // at this point we just log the server replies, don't get too excited...
+
 
         
 //now provide recipient - RCPT TO
     $smtpcmd = "RCPT TO: <$email>\r\n";
-    fputs($ssock, $smtpcmd); if ($smtp_debug) logwrite($bugf, '>'.$smtpcmd);
-    $srvmsg = fgets($ssock); if ($smtp_debug) logwrite($bugf, $srvmsg);
-    $lastmsg = substr($srvmsg, 0, 3); if ($lastmsg <> "250") {
-        if ($smtp_debug) logwrite($bugf, "Sending failed: $lastmsg...\r\n");
+    fputs($ssock, $smtpcmd);
+    if ($smtp_debug)
+        logwrite($bugf, '>' . $smtpcmd);
+    $srvmsg = fgets($ssock);
+    if ($smtp_debug)
+        logwrite($bugf, $srvmsg);
+    $lastmsg = substr($srvmsg, 0, 3);
+    if ($lastmsg <> "250") {
+        if ($smtp_debug)
+            logwrite($bugf, "Sending failed: $lastmsg...\r\n");
         exit;
     }
 
     //start data command - DATA
     $smtpcmd = "DATA\r\n";
-    fputs($ssock, $smtpcmd); if ($smtp_debug) logwrite($bugf, '>'.$smtpcmd);
-    $srvmsg = fgets($ssock); if ($smtp_debug) logwrite($bugf, $srvmsg);
-    $lastmsg = substr($srvmsg, 0, 3); if ($lastmsg <> "354") {
-        if ($smtp_debug) logwrite($bugf, "Sending failed: $lastmsg...\r\n");
+    fputs($ssock, $smtpcmd);
+    if ($smtp_debug)
+        logwrite($bugf, '>' . $smtpcmd);
+    $srvmsg = fgets($ssock);
+    if ($smtp_debug)
+        logwrite($bugf, $srvmsg);
+    $lastmsg = substr($srvmsg, 0, 3);
+    if ($lastmsg <> "354") {
+        if ($smtp_debug)
+            logwrite($bugf, "Sending failed: $lastmsg...\r\n");
         exit;
     }
 
@@ -3682,23 +3723,33 @@ function sendwelcome($userid,$list) {
     $xmsg = str_replace('<', '&lt;', $themesg);
     $xmsg = str_replace('>', '&gt;', $xmsg);
 
-    //debug
-    if ($smtp_debug) logwrite($bugf,$xmsg);
+    if ($smtp_debug)
+        logwrite($bugf, $xmsg);
     fputs($ssock, $themesg . "\r\n.\r\n");
-    $srvmsg = fgets($ssock); if ($smtp_debug) logwrite($bugf, "> SENT DATA\r\n");
-    $lastmsg = substr($srvmsg, 0, 3); if ($smtp_debug) logwrite($bugf, $srvmsg);
+    $srvmsg = fgets($ssock);
+    if ($smtp_debug)
+        logwrite($bugf, "> SENT DATA\r\n");
+    $lastmsg = substr($srvmsg, 0, 3);
+    if ($smtp_debug)
+        logwrite($bugf, $srvmsg);
     if ($lastmsg <> "250") {
-        if ($smtp_debug)  logwrite($bugf, "Sending failed: $lastmsg...");
+        if ($smtp_debug)
+            logwrite($bugf, "Sending failed: $lastmsg...");
         exit;
     }
 
     //Done, close the connection
     $smtpcmd = "QUIT\r\n";
     fputs($ssock, $smtpcmd);
-    $srvmsg = fgets($ssock); if ($smtp_debug) logwrite($bugf, '>'.$smptcmd);
-    $lastmsg = substr($srvmsg, 0, 3); if ($smtp_debug) logwrite($bugf, $srvmsg);
+    $srvmsg = fgets($ssock);
+    if ($smtp_debug)
+        logwrite($bugf, '>' . $smptcmd);
+    $lastmsg = substr($srvmsg, 0, 3);
+    if ($smtp_debug)
+        logwrite($bugf, $srvmsg);
     if ($lastmsg <> "221") {
-        if ($smtp_debug) logwrite($bugf, "Connection error: $lastmsg...\r\n");
+        if ($smtp_debug)
+            logwrite($bugf, "Connection error: $lastmsg...\r\n");
         exit;
     }
     //Done!   
@@ -3737,90 +3788,208 @@ function bounce($email, $msg) {
     global $link;
     if (!valid_email($email))
         return false;
+    //Write bounces to a file first, just in case this script doesn't work
+    $file = './attach/bounces_' . date('Ymd') . '.txt';
+    file_put_contents($file, $email . '\r\n', FILE_APPEND);
 
     $brow = mysql_query("select nbounce from $ctable where 1", $link) or die('admin-44-' . mysql_error());
     list($nbounce) = mysql_fetch_row($brow);
     list($num, $days) = explode(':', $nbounce);
 
-    $urows = mysql_query("select id,list,email,bounces from $utable where email like '" . addslashes($email) . "'") or die('admin-45-' . mysql_error());
-    if (@mysql_num_rows($urows) > 0) {
-        while (list($id, $list, $email, $bounces) = mysql_fetch_row($urows)) {
-            $bounces = explode(';', $bounces);
-            $today = date("Ymd", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
+    //when an email is bounced, I do not know which list it belongs to, so I have to loop through all lists and update all database
+    $ucmd = "select id,list,email,bounces from $utable where email like '" . addslashes($email) . "'";
+    //Retrieve list info
+    $lcmd = "select id,title,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable";
+    $lrow = @mysql_query($lcmd, $link) or die('admin-6-' . mysql_error());
+    while (list($lid, $ltitle, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = @mysql_fetch_row($lrow)) {
+        if ($remote) {
+            try {
+                $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                $dbh_query = $dbh->query($ucmd);
+            } catch (PDOException $e) {
+                die('admin-5-' . $e->getMessage());
+            }
+            //$dbh = null; //close the connection
+            //echo 'lnum:'.$lnum.'<br>';
+            if ($dbh_query->rowCount() > 0) {
+                while (list($id, $list, $email, $bounces) = $dbh_query->fetch()) {
+                    $bounces = explode(';', $bounces);
+                    $today = date("Ymd", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
 
-            if (!$bounces[1]) {
-                if ($num == '1') {
-                    $narr = getnotifs($list);
-                    if ($narr[3] == '1')
-                        sendnotif('rem_bounce', $id, '', $msg);
-                    $listopts = getlistopts($list);
-                    // check whether to keep in db or not
-                    if ($listopts[1] == 1)
-                        mysql_query("update $utable set cnf = '3' where id = '$id'") or die('admin-47-' . mysql_error());
-                    else
-                        mysql_query("delete from $utable where id = '$id'") or die('admin-48-' . mysql_error());
-                    // check remove from other lists
-                    // if($listopts[4]=='1') remlists($email,$list,4);
-                }
-                mysql_query("update $utable set bounces = '0;$today' where id = '$id'") or die('admin-49-' . mysql_error());
-            } else {
-                // process
-                // check and adjust values in case number of bounces is changed to a lower number
-                if (count($bounces) > $num) {
-                    $xbounces = $bounces;
-                    $bounces = array();
-                    $bounces[0] = $num - 2;
-                    $x = 1;
-                    while (list($key, $val) = each($xbounces)) {
-                        if ($key >= count($xbounces) - ($num - 1)) {
-                            $bounces[$x] = $val;
-                            $x++;
-                        }
-                    }
-                    reset($bounces);
-                    $xbounces = '';
-                }
-                if (($bounces[0] + 2) >= $num) {
-                    $time1 = mktime(0, 0, 0, date("m"), date("d"), date("Y"));
-                    $y = substr($bounces[1], 0, 4);
-                    $m = substr($bounces[1], 4, 2);
-                    $d = substr($bounces[1], 6, 2);
-                    $time2 = mktime(0, 0, 0, $m, $d, $y);
-                    $calc = ($time1 - $time2) / 86400;
-                    if ($calc <= $days) {
-                        // notify admin
-                        $narr = getnotifs($list);
-                        if ($narr[3] == '1')
-                            sendnotif('rem_bounce', $id, '', $msg);
-                        // perform operation
-                        $listopts = getlistopts($list);
-                        if ($listopts[1] == 1) {
-                            mysql_query("update $utable set cnf = '3' where id = '$id'") or die('admin-51-' . mysql_error());
-                        } else {
-                            mysql_query("delete from $utable where id = '$id'") or die('admin-52-' . mysql_error());
-                        }
-                        // if($listopts[4]=='1') remlists($email,$list,4);
-                    } else {
-                        $n1 = $bounces[0] . ';' . $bounces[2];
-                        while (list($key, $val) = each($bounces)) {
-                            if ($key > 2) {
-                                $n1 .= ';' . $bounces[$key];
+                    if (!$bounces[1]) {
+                        if ($num == '1') {
+                            $narr = getnotifs($list);
+                            if ($narr[3] == '1')
+                                sendnotif('rem_bounce', $id, '', $msg);
+                            $listopts = getlistopts($list);
+                            // check whether to keep in db or not
+                            if ($listopts[1] == 1) {
+                                $dbh->exec("update $utable set cnf = '3' where id = '$id'");
+                                if ($dbh->errorInfo())
+                                    die('admin-47-' . $dbh->errorInfo());
+                            }
+                            else {
+                                $dbh->exec("delete from $utable where id = '$id'");
+                                if ($dbh->errorInfo())
+                                    die('admin-48-' . $dbh->errorInfo());
                             }
                         }
-                        $n1 .= ';' . $today;
-                        mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-53-' . mysql_error());
-                    }
-                } else {
-                    $n1 = $bounces[0] + 1;
-                    $n1 = "$n1";
-                    while (list($key, $val) = each($bounces)) {
-                        if ($key <> 0) {
-                            $n1 .= ";$val";
+                        $dbh->exec("update $utable set bounces = '0;$today' where id = '$id'");
+                        if ($dbh->errorInfo())
+                            die('admin-49-' . $dbh->errorInfo());
+                    } else {
+                        // process
+                        // check and adjust values in case number of bounces is changed to a lower number
+                        if (count($bounces) > $num) {
+                            $xbounces = $bounces;
+                            $bounces = array();
+                            $bounces[0] = $num - 2;
+                            $x = 1;
+                            while (list($key, $val) = each($xbounces)) {
+                                if ($key >= count($xbounces) - ($num - 1)) {
+                                    $bounces[$x] = $val;
+                                    $x++;
+                                }
+                            }
+                            reset($bounces);
+                            $xbounces = '';
+                        }
+                        if (($bounces[0] + 2) >= $num) {
+                            $time1 = mktime(0, 0, 0, date("m"), date("d"), date("Y"));
+                            $y = substr($bounces[1], 0, 4);
+                            $m = substr($bounces[1], 4, 2);
+                            $d = substr($bounces[1], 6, 2);
+                            $time2 = mktime(0, 0, 0, $m, $d, $y);
+                            $calc = ($time1 - $time2) / 86400;
+                            if ($calc <= $days) {
+                                // notify admin
+                                $narr = getnotifs($list);
+                                if ($narr[3] == '1')
+                                    sendnotif('rem_bounce', $id, '', $msg);
+                                // perform operation
+                                $listopts = getlistopts($list);
+                                if ($listopts[1] == 1) {
+                                    $dbh->exec("update $utable set cnf = '3' where id = '$id'");
+                                    if ($dbh->errorInfo())
+                                        die('admin-51-' . $dbh->errorInfo());
+                                } else {
+                                    $dbh->exec("delete from $utable where id = '$id'");
+                                    if ($dbh->errorInfo())
+                                        die('admin-52-' . $dbh->errorInfo());
+                                }
+                                // if($listopts[4]=='1') remlists($email,$list,4);
+                            } else {
+                                $n1 = $bounces[0] . ';' . $bounces[2];
+                                while (list($key, $val) = each($bounces)) {
+                                    if ($key > 2) {
+                                        $n1 .= ';' . $bounces[$key];
+                                    }
+                                }
+                                $n1 .= ';' . $today;
+                                $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
+                                if ($dbh->errorInfo())
+                                    die('admin-53-' . $dbh->errorInfo());
+                            }
+                        } else {
+                            $n1 = $bounces[0] + 1;
+                            $n1 = "$n1";
+                            while (list($key, $val) = each($bounces)) {
+                                if ($key <> 0) {
+                                    $n1 .= ";$val";
+                                }
+                            }
+                            $n1 .= ";$today";
+                            reset($bounces);
+                            $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
+                            if ($dbh->errorInfo())
+                                die('admin-54-' . $dbh->errorInfo());
                         }
                     }
-                    $n1 .= ";$today";
-                    reset($bounces);
-                    mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-54-' . mysql_error());
+                }
+            }
+        }else {
+            $urows = mysql_query($ucmd) or die('admin-45-' . mysql_error());
+            if (@mysql_num_rows($urows) > 0) {
+                while (list($id, $list, $email, $bounces) = mysql_fetch_row($urows)) {
+                    $bounces = explode(';', $bounces);
+                    $today = date("Ymd", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
+
+                    if (!$bounces[1]) {
+                        if ($num == '1') {
+                            $narr = getnotifs($list);
+                            if ($narr[3] == '1')
+                                sendnotif('rem_bounce', $id, '', $msg);
+                            $listopts = getlistopts($list);
+                            // check whether to keep in db or not
+                            if ($listopts[1] == 1)
+                                mysql_query("update $utable set cnf = '3' where id = '$id'") or die('admin-47-' . mysql_error());
+                            else
+                                mysql_query("delete from $utable where id = '$id'") or die('admin-48-' . mysql_error());
+                            // check remove from other lists
+                            // if($listopts[4]=='1') remlists($email,$list,4);
+                        }
+                        mysql_query("update $utable set bounces = '0;$today' where id = '$id'") or die('admin-49-' . mysql_error());
+                    } else {
+                        // process
+                        // check and adjust values in case number of bounces is changed to a lower number
+                        if (count($bounces) > $num) {
+                            $xbounces = $bounces;
+                            $bounces = array();
+                            $bounces[0] = $num - 2;
+                            $x = 1;
+                            while (list($key, $val) = each($xbounces)) {
+                                if ($key >= count($xbounces) - ($num - 1)) {
+                                    $bounces[$x] = $val;
+                                    $x++;
+                                }
+                            }
+                            reset($bounces);
+                            $xbounces = '';
+                        }
+                        if (($bounces[0] + 2) >= $num) {
+                            $time1 = mktime(0, 0, 0, date("m"), date("d"), date("Y"));
+                            $y = substr($bounces[1], 0, 4);
+                            $m = substr($bounces[1], 4, 2);
+                            $d = substr($bounces[1], 6, 2);
+                            $time2 = mktime(0, 0, 0, $m, $d, $y);
+                            $calc = ($time1 - $time2) / 86400;
+                            if ($calc <= $days) {
+                                // notify admin
+                                $narr = getnotifs($list);
+                                if ($narr[3] == '1')
+                                    sendnotif('rem_bounce', $id, '', $msg);
+                                // perform operation
+                                $listopts = getlistopts($list);
+                                if ($listopts[1] == 1) {
+                                    mysql_query("update $utable set cnf = '3' where id = '$id'") or die('admin-51-' . mysql_error());
+                                } else {
+                                    mysql_query("delete from $utable where id = '$id'") or die('admin-52-' . mysql_error());
+                                }
+                                // if($listopts[4]=='1') remlists($email,$list,4);
+                            } else {
+                                $n1 = $bounces[0] . ';' . $bounces[2];
+                                while (list($key, $val) = each($bounces)) {
+                                    if ($key > 2) {
+                                        $n1 .= ';' . $bounces[$key];
+                                    }
+                                }
+                                $n1 .= ';' . $today;
+                                mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-53-' . mysql_error());
+                            }
+                        } else {
+                            $n1 = $bounces[0] + 1;
+                            $n1 = "$n1";
+                            while (list($key, $val) = each($bounces)) {
+                                if ($key <> 0) {
+                                    $n1 .= ";$val";
+                                }
+                            }
+                            $n1 .= ";$today";
+                            reset($bounces);
+                            mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-54-' . mysql_error());
+                        }
+                    }
                 }
             }
         }
@@ -4124,13 +4293,10 @@ function emsg($t, $i) {
 }
 
 function chtml($t, $i) {
-    //echo "calling custom html code.. "."<br>";//debug
     global $chdtable;
     $r = mysql_query("select html,url from $chdtable where typ = '$t' and id = '$i';") or die('admin-60-' . mysql_error());
     // echo "select html from $chdtable where typ = '$t' and id = '$i';";
-    //echo "select html from $chdtable where typ = '$t' and id = '$i';";//debug
     if (@mysql_num_rows($r) > 0) {
-        //echo "custom html found";//debug
         list($d, $u) = mysql_fetch_row($r);
         if ($u)
             return 'URL:' . $u; else
@@ -4224,9 +4390,12 @@ function qfinish($bat) {
             $header .="X-Mailer: ListMail v$ver$crlf";
             $header .="X-LM-Flags: 5.x.x";
             $report = $lmpath . "\n\n" . $report;
-            if ($phpmailf)
-                mail($admmail, $subj, $report, $header, "-f$errmail"); else
-                mail($admmail, $subj, $report, $header);
+            /* if ($phpmailf)
+              mail($admmail, $subj, $report, $header, "-f$errmail"); else
+              mail($admmail, $subj, $report, $header); */
+            $file = './attach/dailymail_' . date('Ymd') . '.txt';
+            $content = $admmail . "\r\n" . $subj . "\r\n" . $report . "\r\n" . $header . "\r\n";
+            file_put_contents($file, $content . "\r\n", FILE_APPEND);
         }
     }
 }
@@ -4374,9 +4543,7 @@ function addlists($email, $list, $opt = '', $multis = '') {
                 // insert data
                 $debug_query = "insert into $utable values('','$uniq_str','$v','" . addslashes($a3) . "','" . addslashes($a4) . "','" . addslashes($a5) . "','" . addslashes($a6) . "','" . addslashes($a7) . "','" . addslashes($a8) . "','" . addslashes($a9) . "','" . addslashes($a10) . "','" . addslashes($a11) . "','" . addslashes($a12) . "','" . addslashes($a13) . "','" . addslashes($a14) . "','" . addslashes($a15) . "','$seq','$del','1','$dateadd','" . addslashes($a20) . "','" . addslashes($a21) . "','" . addslashes($a22) . "','" . addslashes($a23) . "');";
                 mysql_query("insert into $utable values('','$uniq_str','$v','" . addslashes($a3) . "','" . addslashes($a4) . "','" . addslashes($a5) . "','" . addslashes($a6) . "','" . addslashes($a7) . "','" . addslashes($a8) . "','" . addslashes($a9) . "','" . addslashes($a10) . "','" . addslashes($a11) . "','" . addslashes($a12) . "','" . addslashes($a13) . "','" . addslashes($a14) . "','" . addslashes($a15) . "','$seq','$del','1','$dateadd','" . addslashes($a20) . "','" . addslashes($a21) . "','" . addslashes($a22) . "','" . addslashes($a23) . "');");
-                //debug
-                //echo '<span>' . $debug_query . '</span>';
-                //debug
+
                 if (!$f)
                     $ly .= ',';
                 $ly .= $v;
