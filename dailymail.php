@@ -403,7 +403,7 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                         if ($lastmsg <> "+")
                             $error = 1;
                         $numsgs = explode(' ', $srvmsg);
-                        $numsgs = $numsgs[1];
+                        $numsgs = $numsgs[1]; echo $srvmsg;//debug
 
                         // $mailsize = $numsgs[2];
                         if ($numsgs <> '0')
@@ -578,7 +578,6 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                     //while (list($xem, $uid) = @mysql_fetch_row($urows)) {
                     while(list(,$user) = each($urows)){
                         list($xem, $uid) = $user;
-                        echo 'email='.$xem.', uid='.$uid.'<br>';
                         $xid = calc32();
                         mysql_query("insert into $otable values('$xid','$batid','2','1','$qlist','$uid','$msgid','');") or die(mysql_error()); 
                         $sendq++;
@@ -978,7 +977,7 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
         mysql_data_seek($lrows, 0);
         while (list($list, $title,$addopts, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = mysql_fetch_row($lrows)) {
             $ucmd = "select id,dateadd from $utable where cnf = '1' and list = '$list'";
-            echo 'checking list'.$list;
+            echo 'checking list'.$list.'<br>';
             //check if list is remote
             if ($remote) {
                 try {
@@ -991,7 +990,6 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                 $nusers = $dbh_query->rowCount();
                 $users = $dbh_query->fetchAll();
                 $dbh = null; //close the connection
-                echo 'remote list done!<br>';//debug
             } else {
                 $ucount = mysql_query($ucmd);
                 $nusers = @mysql_num_rows($ucount);
@@ -999,7 +997,6 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                 $users = array();
                 $index = 0;
                 while ($user_row = mysql_fetch_row($ucount)) {
-                    print_r($user_row);echo '<br>';
                     $users[] = $user_row;
                 }
             }

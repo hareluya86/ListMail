@@ -1822,7 +1822,6 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
             if ($mtype <> '5') {
                 //Get list remote info
                 $lcmd = "select remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = $lid";
-                echo $lcmd . '<br>';
                 $lrows = @mysql_query($lcmd);
                 list($remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = mysql_fetch_row($lrows);
                 // get user send vars

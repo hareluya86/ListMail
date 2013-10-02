@@ -1782,18 +1782,19 @@ SMTP POPcheck chk = $mtpchk<br><br>";
    // output server responses
    // $debug = 1;
 
-   $asock = fsockopen($errhost, $errport);echo 'still connecting...<br>';
+   $asock = fsockopen($errhost, $errport);
    if(!$asock){
     if($debug) echo "failed opening socket to $errhost $errport<br>";
+    echo "failed opening socket to $errhost $errport<br>";
     $error = 1;
    } else $error = '';
-   echo 'no error...<br>';
    if(!$error){
     // connected!
-    $srvmsg = fgets($asock, 1024); echo 'msg='.$srvmsg.'<br>';
+    echo 'error='.$error.'<br>';
+    $srvmsg = fgets($asock, 1024);echo 'msg='.$srvmsg.'<br>';
     if($debug) echo "connected! server: $srvmsg<br>";
     $lastmsg = substr($srvmsg, 0, 1);
-    if ($lastmsg <> "+") $error = 1; else $error = '';
+    if ($lastmsg <> "+") $error = 1; else $error = '';echo 'error='.$error.'<br>';
     if(!$error){
      echo " <b>Connected!</b><br>Verifying username and password...";
      // send user
