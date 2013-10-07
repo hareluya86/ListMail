@@ -337,8 +337,8 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
         // check if checking bounced mail
         if ($errchk == '1' && !$nobounce) {
             // get mail server settings and connect
-            $result = mysql_query("select errhost,errport,erruser,errpass from $ctable where 1");
-            list($ehost, $eport, $euser, $epass) = mysql_fetch_row($result);
+            $result = mysql_query("select errhost,errport,erruser,errpass,errfrom from $ctable where 1");
+            list($ehost, $eport, $euser, $epass, $errfrom) = mysql_fetch_row($result);
             @mysql_free_result($result);
 
             if ($outp) {
@@ -398,16 +398,16 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                         // check # of messages
                         fputs($asock, "STAT\r\n");
                         $srvmsg = fgets($asock, 1024);
-                        // echo " STATmsg=$srvmsg.. "; flush();
+                        //echo " STATmsg=$srvmsg.. "; //flush();debug
                         $lastmsg = substr($srvmsg, 0, 1);
                         if ($lastmsg <> "+")
                             $error = 1;
-                        $numsgs = explode(' ', $srvmsg);
-                        $numsgs = $numsgs[1]; echo $srvmsg;//debug
-
+                        $numsgs = explode(' ', $srvmsg); //echo 'srvmsg='.$srvmsg.'<br>';
+                        $numsgs = $numsgs[1]; //echo 'num of msg'.$numsgs.'<br>';//debug
                         // $mailsize = $numsgs[2];
                         if ($numsgs <> '0')
-                            $bounced = $numsgs; else
+                            $bounced = $numsgs; 
+                        else
                             $bounced = '';
                         $numsgs = '';
                         // process bounced
@@ -415,23 +415,24 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                         if ($bounced) {
                             $deleted = 0;
                             if ($outp) {
-                                echo " Processing $numsgs bounced messages, please wait...";
+                                echo " Processing $bounced bounced messages, please wait...<br>";
                                 flush();
                             }
-
-                            // debug
+                            
+                            // loop through each email to check if should update the bounce counter
                             for ($i = 1; $i <= $bounced; $i++) {
                                 fputs($asock, "RETR $i\r\n");
                                 $srvmsg = fgets($asock, 1024);
                                 $lastmsg = substr($srvmsg, 0, 1);
-                                if ($lastmsg <> "+")
-                                    $error = 1;
+                                if ($lastmsg <> "+") $error = 1;
 
                                 $data = '';
                                 $msgline = array();
                                 while (substr($srvmsg = fgets($asock, 1024), 0, 3) <> ".\r\n") {
                                     array_push($msgline, $srvmsg);
+                                    //echo $srvmsg.'<br>';//debug
                                 }
+                                //if($i==3) die();//debug
                                 $themesg = '';
                                 while (list($key, $val) = each($msgline))
                                     $themesg .= "> " . $val;
@@ -440,12 +441,10 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                                 $em = $themesg;
 
                                 $error = 1;
-
                                 $schar = 0;
                                 $cchar = 0;
                                 $cline = 0;
                                 $done = '';
-
                                 while (!$done) {
                                     if ($cchar == strlen($em))
                                         $done = 1;
@@ -461,10 +460,13 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                                     }
                                 }
 
-                                // find lines that start with To:
+                                // find lines that start with To: and From:
                                 @reset($lines);
+                                $from = '';
                                 while (list($key, $val) = each($lines)) {
+                                    $val2 = $val;
                                     if (strpos(strtoupper(substr($val, 0, 5)), strtoupper('To:')) !== false) {
+                                        //echo 'val='.$val.'<br>';
                                         $val = str_replace('<', '', $val);
                                         $val = str_replace('>', '', $val);
                                         $tpos = strpos(strtoupper(substr($val, 0, 5)), strtoupper('To:'));
@@ -478,16 +480,37 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                                         $line = str_replace(' ', '', $line);
                                         $target = $line;
                                     }
-                                }
-                                if ($target)
-                                    bounce($target, $em); //loops through ALL lists to update email bounce
-
+                                    //echo 'val2='.$val2.'<br>';
+                                    if (strpos(strtoupper(substr($val2, 0, 7)), strtoupper('From:')) !== false
+                                            && !$from) {
+                                        $val2 = str_replace('<', '', $val2);//echo 'val2='.$val2.'<br>';
+                                        $val2 = str_replace('>', '', $val2);//echo 'val2='.$val2.'<br>';
+                                        $tpos = strpos(strtoupper(substr($val2, 0, 7)), strtoupper('From:'));//echo 'tpos='.$tpos.'<br>';
+                                        $qpos = strpos($val2, '" ');//echo 'qpos='.$qpos.'<br>';
+                                        if ($qpos !== false) {
+                                            $line2 = substr($val2, $qpos + 4, strlen($val2) - $qpos - 4);//echo 'line2='.$line2.'<br>';
+                                        } else
+                                            $line2 = substr($val2, $tpos + 6, strlen($val2) - $tpos - 6);//echo 'line2='.$line2.'<br>';
+                                        $line2 = str_replace("\r", '', $line2);//echo 'line2='.$line2.'<br>';
+                                        $line2 = str_replace("\n", '', $line2);//echo 'line2='.$line2.'<br>';
+                                        $line2 = str_replace(' ', '', $line2);//echo 'line2='.$line2.'<br>';
+                                        $from = $line2;
+                                    }
+                                }echo 'Target='.$target.'<br>';//debug
+                                echo 'From='.$from.'<br>';//debug
+                                if ($target && $from == $errfrom)
+                                    bounce($target, $em); //loops through ALL lists to update email bounce debug
+                                    //bounce2($target, $em, $from); should not use bounce2 because it should be detected that email is not a bounce email before calling bounce()
+                                else continue;
+                                    
                                 $stats[0]['bouncing']++; //total number of bounces
                                 $stats[$ulist]['bouncing']++; //total number of bounces for list #$ulist
-
-                                fputs($asock, "DELE $i\r\n");
-                                $srvmsg = fgets($asock, 1024);
-                                $lastmsg = substr($srvmsg, 0, 1);
+                                
+                                //fputs($asock, "RSET \r\n");
+                                //$srvmsg = fgets($asock, 1024);echo 'RSET='.$srvmsg.'<br>';
+                                //fputs($asock, "DELE $i\r\n");//debug
+                                //$srvmsg = fgets($asock, 1024);
+                                //$lastmsg = substr($srvmsg, 0, 1);
                                 // if ($lastmsg <> "+") $error = 1; else $error = '';
                             } // for each bounced msg
 
@@ -977,7 +1000,7 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
         mysql_data_seek($lrows, 0);
         while (list($list, $title,$addopts, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = mysql_fetch_row($lrows)) {
             $ucmd = "select id,dateadd from $utable where cnf = '1' and list = '$list'";
-            echo 'checking list'.$list.'<br>';
+            //echo 'checking list'.$list.'<br>';debug
             //check if list is remote
             if ($remote) {
                 try {

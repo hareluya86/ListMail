@@ -3798,9 +3798,10 @@ function bounce($email, $msg) {
     //when an email is bounced, I do not know which list it belongs to, so I have to loop through all lists and update all database
     $ucmd = "select id,list,email,bounces from $utable where email like '" . addslashes($email) . "'";
     //Retrieve list info
-    $lcmd = "select id,title,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable";
+    $lcmd = "select id,listnum,title,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable";
     $lrow = @mysql_query($lcmd, $link) or die('admin-6-' . mysql_error());
-    while (list($lid, $ltitle, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = @mysql_fetch_row($lrow)) {
+    while (list($lid,$listnum, $ltitle, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = @mysql_fetch_row($lrow)) {
+        echo 'This is list num '.$listnum.'<br>';//debug
         if ($remote) {
             try {
                 $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
@@ -3809,10 +3810,10 @@ function bounce($email, $msg) {
             } catch (PDOException $e) {
                 die('admin-5-' . $e->getMessage());
             }
-            //$dbh = null; //close the connection
-            //echo 'lnum:'.$lnum.'<br>';
             if ($dbh_query->rowCount() > 0) {
                 while (list($id, $list, $email, $bounces) = $dbh_query->fetch()) {
+                    if($list <> $listnum) continue;
+                    echo 'id='.$id.', list='.$list.', email='.$email.'<br>';//debug
                     $bounces = explode(';', $bounces);
                     $today = date("Ymd", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
 
@@ -3891,14 +3892,14 @@ function bounce($email, $msg) {
                                     die('admin-53-' . $dbh->errorInfo());
                             }
                         } else {
-                            $n1 = $bounces[0] + 1;
-                            $n1 = "$n1";
+                            $n1 = $bounces[0] + 1;echo 'n1='.$n1.'<br>';//debug
+                            $n1 = "$n1";echo 'n1='.$n1.'<br>';//debug
                             while (list($key, $val) = each($bounces)) {
                                 if ($key <> 0) {
-                                    $n1 .= ";$val";
+                                    $n1 .= ";$val";echo 'n1='.$n1.'<br>';//debug
                                 }
                             }
-                            $n1 .= ";$today";
+                            $n1 .= ";$today";echo 'n1='.$n1.'<br>';//debug
                             reset($bounces);
                             $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
                             if ($dbh->errorInfo())
@@ -3911,10 +3912,11 @@ function bounce($email, $msg) {
             $urows = mysql_query($ucmd) or die('admin-45-' . mysql_error());
             if (@mysql_num_rows($urows) > 0) {
                 while (list($id, $list, $email, $bounces) = mysql_fetch_row($urows)) {
+                    if($list <> $listnum) continue;
                     $bounces = explode(';', $bounces);
                     $today = date("Ymd", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
 
-                    if (!$bounces[1]) {
+                    if (!$bounces[1]) {echo 'num = '.$num.'<br>';//debug
                         if ($num == '1') {
                             $narr = getnotifs($list);
                             if ($narr[3] == '1')
@@ -3929,6 +3931,132 @@ function bounce($email, $msg) {
                             // if($listopts[4]=='1') remlists($email,$list,4);
                         }
                         mysql_query("update $utable set bounces = '0;$today' where id = '$id'") or die('admin-49-' . mysql_error());
+                    } else {
+                        // process
+                        // check and adjust values in case number of bounces is changed to a lower number
+                        echo 'bounces = '.count($bounces).'<br>';//debug
+                        if (count($bounces) > $num) {
+                            $xbounces = $bounces;
+                            $bounces = array();
+                            $bounces[0] = $num - 2;
+                            $x = 1;
+                            while (list($key, $val) = each($xbounces)) {
+                                if ($key >= count($xbounces) - ($num - 1)) {
+                                    $bounces[$x] = $val;
+                                    $x++;
+                                }
+                            }
+                            reset($bounces);
+                            $xbounces = '';
+                        }
+                        if (($bounces[0] + 2) >= $num) {
+                            $time1 = mktime(0, 0, 0, date("m"), date("d"), date("Y"));
+                            $y = substr($bounces[1], 0, 4);
+                            $m = substr($bounces[1], 4, 2);
+                            $d = substr($bounces[1], 6, 2);
+                            $time2 = mktime(0, 0, 0, $m, $d, $y);
+                            $calc = ($time1 - $time2) / 86400;
+                            if ($calc <= $days) {
+                                // notify admin
+                                $narr = getnotifs($list);
+                                if ($narr[3] == '1')
+                                    sendnotif('rem_bounce', $id, '', $msg);
+                                // perform operation
+                                $listopts = getlistopts($list);
+                                if ($listopts[1] == 1) {
+                                    echo "update $utable set cnf = '3' where id = '$id'<br>";//debug
+                                    mysql_query("update $utable set cnf = '3' where id = '$id'") or die('admin-51-' . mysql_error());
+                                } else {
+                                    mysql_query("delete from $utable where id = '$id'") or die('admin-52-' . mysql_error());
+                                }
+                                // if($listopts[4]=='1') remlists($email,$list,4);
+                            } else {
+                                $n1 = $bounces[0] . ';' . $bounces[2];
+                                while (list($key, $val) = each($bounces)) {
+                                    if ($key > 2) {
+                                        $n1 .= ';' . $bounces[$key];
+                                    }
+                                }
+                                $n1 .= ';' . $today;
+                                mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-53-' . mysql_error());
+                            }
+                        } else {
+                            $n1 = $bounces[0] + 1;echo 'n1='.$n1.'<br>';//debug
+                            $n1 = "$n1";
+                            while (list($key, $val) = each($bounces)) {
+                                if ($key <> 0) {
+                                    $n1 .= ";$val";
+                                }
+                            }
+                            $n1 .= ";$today";
+                            reset($bounces);
+                            mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-54-' . mysql_error());
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+function bounce2($email, $msg, $bouncesender) {
+    global $utable;
+    global $ctable;
+    global $ltable;
+    global $link;
+    if (!valid_email($email))
+        return false;
+    //Write bounces to a file first, just in case this script doesn't work
+    $file = './attach/bounces_' . date('Ymd') . '.txt';
+    file_put_contents($file, $email . '\r\n', FILE_APPEND);
+
+    $brow = mysql_query("select errfrom,nbounce from $ctable where 1", $link) or die('admin-44-' . mysql_error());
+    list($errfrom,$nbounce) = mysql_fetch_row($brow);
+    list($num, $days) = explode(':', $nbounce);
+
+    //when an email is bounced, I do not know which list it belongs to, so I have to loop through all lists and update all database
+    $ucmd = "select id,list,email,bounces from $utable where email like '" . addslashes($email) . "'";
+    //Retrieve list info
+    $lcmd = "select id,listnum,title,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable";
+    $lrow = @mysql_query($lcmd, $link) or die('admin-6-' . mysql_error());
+    while (list($lid,$listnum, $ltitle, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = @mysql_fetch_row($lrow)) {
+        echo 'This is list num '.$listnum.'<br>';//debug
+        if ($remote) {
+            try {
+                $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                $dbh_query = $dbh->query($ucmd);
+            } catch (PDOException $e) {
+                die('admin-5-' . $e->getMessage());
+            }
+            if ($dbh_query->rowCount() > 0) {
+                while (list($id, $list, $email, $bounces) = $dbh_query->fetch()) {
+                    if($list <> $listnum) continue;
+                    echo 'id='.$id.', list='.$list.', email='.$email.'<br>';//debug
+                    $bounces = explode(';', $bounces);
+                    $today = date("Ymd", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
+
+                    if (!$bounces[1]) {
+                        if ($num == '1') {
+                            $narr = getnotifs($list);
+                            if ($narr[3] == '1')
+                                sendnotif('rem_bounce', $id, '', $msg);
+                            $listopts = getlistopts($list);
+                            // check whether to keep in db or not
+                            if ($listopts[1] == 1) {
+                                $dbh->exec("update $utable set cnf = '3' where id = '$id'");
+                                if ($dbh->errorInfo())
+                                    die('admin-47-' . $dbh->errorInfo());
+                            }
+                            else {
+                                $dbh->exec("delete from $utable where id = '$id'");
+                                if ($dbh->errorInfo())
+                                    die('admin-48-' . $dbh->errorInfo());
+                            }
+                        }
+                        $dbh->exec("update $utable set bounces = '0;$today' where id = '$id'");
+                        if ($dbh->errorInfo())
+                            die('admin-49-' . $dbh->errorInfo());
                     } else {
                         // process
                         // check and adjust values in case number of bounces is changed to a lower number
@@ -3961,6 +4089,101 @@ function bounce($email, $msg) {
                                 // perform operation
                                 $listopts = getlistopts($list);
                                 if ($listopts[1] == 1) {
+                                    $dbh->exec("update $utable set cnf = '3' where id = '$id'");
+                                    if ($dbh->errorInfo())
+                                        die('admin-51-' . $dbh->errorInfo());
+                                } else {
+                                    $dbh->exec("delete from $utable where id = '$id'");
+                                    if ($dbh->errorInfo())
+                                        die('admin-52-' . $dbh->errorInfo());
+                                }
+                                // if($listopts[4]=='1') remlists($email,$list,4);
+                            } else {
+                                $n1 = $bounces[0] . ';' . $bounces[2];
+                                while (list($key, $val) = each($bounces)) {
+                                    if ($key > 2) {
+                                        $n1 .= ';' . $bounces[$key];
+                                    }
+                                }
+                                $n1 .= ';' . $today;
+                                $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
+                                if ($dbh->errorInfo())
+                                    die('admin-53-' . $dbh->errorInfo());
+                            }
+                        } else {
+                            $n1 = $bounces[0] + 1;echo 'n1='.$n1.'<br>';//debug
+                            $n1 = "$n1";echo 'n1='.$n1.'<br>';//debug
+                            while (list($key, $val) = each($bounces)) {
+                                if ($key <> 0) {
+                                    $n1 .= ";$val";echo 'n1='.$n1.'<br>';//debug
+                                }
+                            }
+                            $n1 .= ";$today";echo 'n1='.$n1.'<br>';//debug
+                            reset($bounces);
+                            $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
+                            if ($dbh->errorInfo())
+                                die('admin-54-' . $dbh->errorInfo());
+                        }
+                    }
+                }
+            }
+        }else {
+            $urows = mysql_query($ucmd) or die('admin-45-' . mysql_error());
+            if (@mysql_num_rows($urows) > 0) {
+                while (list($id, $list, $email, $bounces) = mysql_fetch_row($urows)) {
+                    if($list <> $listnum) continue;
+                    $bounces = explode(';', $bounces);
+                    $today = date("Ymd", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
+
+                    if (!$bounces[1]) {echo 'num = '.$num.'<br>';//debug
+                        if ($num == '1') {
+                            $narr = getnotifs($list);
+                            if ($narr[3] == '1')
+                                sendnotif('rem_bounce', $id, '', $msg);
+                            $listopts = getlistopts($list);
+                            // check whether to keep in db or not
+                            if ($listopts[1] == 1)
+                                mysql_query("update $utable set cnf = '3' where id = '$id'") or die('admin-47-' . mysql_error());
+                            else
+                                mysql_query("delete from $utable where id = '$id'") or die('admin-48-' . mysql_error());
+                            // check remove from other lists
+                            // if($listopts[4]=='1') remlists($email,$list,4);
+                        }
+                        mysql_query("update $utable set bounces = '0;$today' where id = '$id'") or die('admin-49-' . mysql_error());
+                    } else {
+                        // process
+                        // check and adjust values in case number of bounces is changed to a lower number
+                        echo 'bounces = '.count($bounces).'<br>';//debug
+                        if (count($bounces) > $num) {
+                            $xbounces = $bounces;
+                            $bounces = array();
+                            $bounces[0] = $num - 2;
+                            $x = 1;
+                            while (list($key, $val) = each($xbounces)) {
+                                if ($key >= count($xbounces) - ($num - 1)) {
+                                    $bounces[$x] = $val;
+                                    $x++;
+                                }
+                            }
+                            reset($bounces);
+                            $xbounces = '';
+                        }
+                        if (($bounces[0] + 2) >= $num) {
+                            $time1 = mktime(0, 0, 0, date("m"), date("d"), date("Y"));
+                            $y = substr($bounces[1], 0, 4);
+                            $m = substr($bounces[1], 4, 2);
+                            $d = substr($bounces[1], 6, 2);
+                            $time2 = mktime(0, 0, 0, $m, $d, $y);
+                            $calc = ($time1 - $time2) / 86400;
+                            if ($calc <= $days) {
+                                // notify admin
+                                $narr = getnotifs($list);
+                                if ($narr[3] == '1')
+                                    sendnotif('rem_bounce', $id, '', $msg);
+                                // perform operation
+                                $listopts = getlistopts($list);
+                                if ($listopts[1] == 1) {
+                                    echo "update $utable set cnf = '3' where id = '$id'<br>";//debug
                                     mysql_query("update $utable set cnf = '3' where id = '$id'") or die('admin-51-' . mysql_error());
                                 } else {
                                     mysql_query("delete from $utable where id = '$id'") or die('admin-52-' . mysql_error());
@@ -3977,7 +4200,7 @@ function bounce($email, $msg) {
                                 mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-53-' . mysql_error());
                             }
                         } else {
-                            $n1 = $bounces[0] + 1;
+                            $n1 = $bounces[0] + 1;echo 'n1='.$n1.'<br>';//debug
                             $n1 = "$n1";
                             while (list($key, $val) = each($bounces)) {
                                 if ($key <> 0) {
@@ -3989,103 +4212,6 @@ function bounce($email, $msg) {
                             mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-54-' . mysql_error());
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-function bounce2($email, $msg) {
-    global $utable;
-    global $ctable;
-    global $ltable;
-    global $link;
-    if (!valid_email($email))
-        return false;
-
-    $brow = mysql_query("select nbounce from $ctable where 1", $link) or die('admin-44-' . mysql_error());
-    list($nbounce) = mysql_fetch_row($brow);
-    list($num, $days) = explode(':', $nbounce);
-
-    $urows = mysql_query("select id,list,email,bounces from $utable where email like '" . addslashes($email) . "'") or die('admin-45-' . mysql_error());
-    if (@mysql_num_rows($urows) > 0) {
-        while (list($id, $list, $email, $bounces) = mysql_fetch_row($urows)) {
-            $bounces = explode(';', $bounces);
-            $today = date("Ymd", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
-
-            if (!$bounces[1]) {
-                if ($num == '1') {
-                    $narr = getnotifs($list);
-                    if ($narr[3] == '1')
-                        sendnotif('rem_bounce', $id, '', $msg);
-                    $listopts = getlistopts($list);
-                    // check whether to keep in db or not
-                    if ($listopts[1] == 1)
-                        mysql_query("update $utable set cnf = '3' where id = '$id'") or die('admin-47-' . mysql_error());
-                    else
-                        mysql_query("delete from $utable where id = '$id'") or die('admin-48-' . mysql_error());
-                    // check remove from other lists
-                    // if($listopts[4]=='1') remlists($email,$list,4);
-                }
-                mysql_query("update $utable set bounces = '0;$today' where id = '$id'") or die('admin-49-' . mysql_error());
-            } else {
-                // process
-                // check and adjust values in case number of bounces is changed to a lower number
-                if (count($bounces) > $num) {
-                    $xbounces = $bounces;
-                    $bounces = array();
-                    $bounces[0] = $num - 2;
-                    $x = 1;
-                    while (list($key, $val) = each($xbounces)) {
-                        if ($key >= count($xbounces) - ($num - 1)) {
-                            $bounces[$x] = $val;
-                            $x++;
-                        }
-                    }
-                    reset($bounces);
-                    $xbounces = '';
-                }
-                if (($bounces[0] + 2) >= $num) {
-                    $time1 = mktime(0, 0, 0, date("m"), date("d"), date("Y"));
-                    $y = substr($bounces[1], 0, 4);
-                    $m = substr($bounces[1], 4, 2);
-                    $d = substr($bounces[1], 6, 2);
-                    $time2 = mktime(0, 0, 0, $m, $d, $y);
-                    $calc = ($time1 - $time2) / 86400;
-                    if ($calc <= $days) {
-                        // notify admin
-                        $narr = getnotifs($list);
-                        if ($narr[3] == '1')
-                            sendnotif('rem_bounce', $id, '', $msg);
-                        // perform operation
-                        $listopts = getlistopts($list);
-                        if ($listopts[1] == 1) {
-                            mysql_query("update $utable set cnf = '3' where id = '$id'") or die('admin-51-' . mysql_error());
-                        } else {
-                            mysql_query("delete from $utable where id = '$id'") or die('admin-52-' . mysql_error());
-                        }
-                        // if($listopts[4]=='1') remlists($email,$list,4);
-                    } else {
-                        $n1 = $bounces[0] . ';' . $bounces[2];
-                        while (list($key, $val) = each($bounces)) {
-                            if ($key > 2) {
-                                $n1 .= ';' . $bounces[$key];
-                            }
-                        }
-                        $n1 .= ';' . $today;
-                        mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-53-' . mysql_error());
-                    }
-                } else {
-                    $n1 = $bounces[0] + 1;
-                    $n1 = "$n1";
-                    while (list($key, $val) = each($bounces)) {
-                        if ($key <> 0) {
-                            $n1 .= ";$val";
-                        }
-                    }
-                    $n1 .= ";$today";
-                    reset($bounces);
-                    mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-54-' . mysql_error());
                 }
             }
         }

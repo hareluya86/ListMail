@@ -1292,6 +1292,7 @@ $cmd="CREATE TABLE $ctable (
    erruser VARCHAR (60) not null,
    errpass VARCHAR (20) not null,
    errchk CHAR (1) not null,
+   errfrom VARCHAR (40),
    delay1 SMALLINT UNSIGNED not null,
    delay2 TINYINT (2) UNSIGNED not null,
    delay3 SMALLINT UNSIGNED not null,
@@ -1736,9 +1737,9 @@ echo "<br>Done!  Everything worked!  Now you just need to make sure to schedule 
 if($testmail){
 
  // get config settings
- $cmd = "select admmail,errhost,errport,erraddr,erruser,errpass,errchk,mthost,mtport,mtauth,mtuser,mtpass,mtdelay,mtchk,mtphost,mtpport,mtpuser,mtppass,mtpdelay,mtpchk from $ctable where 1";
+ $cmd = "select admmail,errhost,errport,erraddr,erruser,errpass,errchk,errfrom,mthost,mtport,mtauth,mtuser,mtpass,mtdelay,mtchk,mtphost,mtpport,mtpuser,mtppass,mtpdelay,mtpchk from $ctable where 1";
  $crow = mysql_query($cmd);
-list($admmail,$errhost,$errport,$erraddr,$erruser,$errpass,$errchk,$mthost,$mtport,$mtauth,$mtuser,$mtpass,$mtdelay,$mtchk,$mtphost,$mtpport,$mtpuser,$mtppass,$mtpdelay,$mtpchk) = mysql_fetch_row($crow);
+list($admmail,$errhost,$errport,$erraddr,$erruser,$errpass,$errchk,$errfrom,$mthost,$mtport,$mtauth,$mtuser,$mtpass,$mtdelay,$mtchk,$mtphost,$mtpport,$mtpuser,$mtppass,$mtpdelay,$mtpchk) = mysql_fetch_row($crow);
  list($mtchk,$mtlog)=explode(';',$mtchk);
  $emails = explode(';',$admmail);
  $admmail = $emails[0];
@@ -1751,7 +1752,8 @@ bounce mailbox host = $errhost<br>
 bounce mailbox port = $errport<br>
 bounce mailbox addr = $erraddr<br>
 bounce mailbox pass = $errpass<br>
-bounce mailbox chk = $errchk<br><br>
+bounce mailbox chk = $errchk<br>
+bounce mailbox from = $errfrom<br><br>
 SMTP host = $mthost<br>
 SMTP port = $mtport<br>
 SMTP AUTH = $mtauth<br>
@@ -2124,8 +2126,7 @@ if ($installed && !$doinst){
    }
   } else $toquery = false;
   // echo "saving...";
-
-  $cmd = "update $ctable set admpw = '$tadmpw', daypw = '$tdaypw', admmail = '$tadmmail', listmailpath = '$tlmpath', keycode = '$tkeycode', linkcode = '$tlinkcode', wrapon = '$twrapon', wrapcols = '$twrapcols', errhost = '$terrhost', errport = '$terrport', erraddr = '$tpopaddr', erruser = '$tpopuser', errpass = '$tpoppass', errchk = '$terrchk', delay1 = '$tdelay', delay2 = '$tdelay2', delay3 = '$tdelay3', nbounce = '$tbounces', mthost = '$tmthost', mtport = '$tmtport', mtauth = '$tmtauth', mtuser = '$tmtuser', mtpass = '$tmtpass', mtdelay = '$tmtdelay', mtchk = '$tmtchk', mtphost = '$tmtphost', mtpport = '$tmtpport', mtpuser = '$tmtpuser', mtppass = '$tmtppass', mtpdelay = $tmtpdelay, mtpchk = '$tmtpchk', notifs = '$tnotifs', maint = '$tmaint'$toquery where 1";
+  $cmd = "update $ctable set admpw = '$tadmpw', daypw = '$tdaypw', admmail = '$tadmmail', listmailpath = '$tlmpath', keycode = '$tkeycode', linkcode = '$tlinkcode', wrapon = '$twrapon', wrapcols = '$twrapcols', errhost = '$terrhost', errport = '$terrport', erraddr = '$tpopaddr', erruser = '$tpopuser', errpass = '$tpoppass', errchk = '$terrchk', errfrom = '$terrfrom', delay1 = '$tdelay', delay2 = '$tdelay2', delay3 = '$tdelay3', nbounce = '$tbounces', mthost = '$tmthost', mtport = '$tmtport', mtauth = '$tmtauth', mtuser = '$tmtuser', mtpass = '$tmtpass', mtdelay = '$tmtdelay', mtchk = '$tmtchk', mtphost = '$tmtphost', mtpport = '$tmtpport', mtpuser = '$tmtpuser', mtppass = '$tmtppass', mtpdelay = $tmtpdelay, mtpchk = '$tmtpchk', notifs = '$tnotifs', maint = '$tmaint'$toquery where 1";
   if ($demo <> 'yes'){
    list($oa)=mysql_fetch_row(mysql_query("select admpw from $ctable where 1"));
    if($oa<>stripslashes($tadmpw)){
@@ -2152,9 +2153,9 @@ if ($installed && !$doinst){
   <td valign=top>";
 
  // read values
- $cmd = "select admpw,daypw,admmail,listmailpath,keycode,linkcode,wrapon,wrapcols,errhost,errport,erraddr,erruser,errpass,errchk,delay1,delay2,delay3,nbounce,mthost,mtport,mtauth,mtuser,mtpass,mtdelay,mtchk,mtphost,mtpport,mtpuser,mtppass,mtpdelay,mtpchk,notifs,maint,textonly from $ctable where 1 limit 1";
+ $cmd = "select admpw,daypw,admmail,listmailpath,keycode,linkcode,wrapon,wrapcols,errhost,errport,erraddr,erruser,errpass,errchk,errfrom,delay1,delay2,delay3,nbounce,mthost,mtport,mtauth,mtuser,mtpass,mtdelay,mtchk,mtphost,mtpport,mtpuser,mtppass,mtpdelay,mtpchk,notifs,maint,textonly from $ctable where 1 limit 1";
 $result = mysql_query($cmd);
-while(list($admpw,$daypw,$admmail,$listmailpath,$keycode,$linkcode,$wrapon,$wrapcols,$errhost,$errport,$popaddr,$popuser,$poppass,$errchk,$delay,$delay2,$delay3,$bounces,$mthost,$mtport,$mtauth,$mtuser,$mtpass,$mtdelay,$mtchk,$mtphost,$mtpport,$mtpuser,$mtppass,$mtpdelay,$mtpchk,$notifs,$maint,$textonly) = mysql_fetch_row($result)){
+while(list($admpw,$daypw,$admmail,$listmailpath,$keycode,$linkcode,$wrapon,$wrapcols,$errhost,$errport,$popaddr,$popuser,$poppass,$errchk,$errfrom,$delay,$delay2,$delay3,$bounces,$mthost,$mtport,$mtauth,$mtuser,$mtpass,$mtdelay,$mtchk,$mtphost,$mtpport,$mtpuser,$mtppass,$mtpdelay,$mtpchk,$notifs,$maint,$textonly) = mysql_fetch_row($result)){
  $emails = explode(';',$admmail);
  $admmail = $emails[0];
  $testmail = $emails[1];
@@ -2192,6 +2193,7 @@ while(list($admpw,$daypw,$admmail,$listmailpath,$keycode,$linkcode,$wrapon,$wrap
  if($errport=='993') $epssl = ' selected';
  if($mtpport=='143') $mtpimap = ' selected';
  if($mtpport=='993') $mtpssl = ' selected';
+ if($errport=='995') $gmailpop = ' selected';
 
 
  // main page
@@ -2398,7 +2400,12 @@ while(list($admpw,$daypw,$admmail,$listmailpath,$keycode,$linkcode,$wrapon,$wrap
        <input name=terrhost type=text class=xbox style=\"width: 150px\" value=\"".htmlspecialchars($errhost)."\">
       </td><td width=10><img src=1.gif width=10></td><td>
        <span class=table_inside_small>Type</span><br>
-       <select name=terrport class=xarea><option value=\"110\">POP3</option><option value=\"143\"$epimap>IMAP</option><option value=\"993\"$epssl>SSL</option></select>
+       <select name=terrport class=xarea>
+         <option value=\"110\">POP3</option>
+         <option value=\"143\"$epimap>IMAP</option>
+         <option value=\"993\"$epssl>SSL</option>
+         <option value=\"995\"$gmailpop>GMAILPOP</option>
+       </select>
       </td><td width=10><img src=1.gif width=10></td><td>
        <span class=table_inside_small>Login ID<br><input name=tpopuser type=text class=xbox style=\"width: 140px\" value=\"".htmlspecialchars($popuser)."\"></span><br>
       </td><td width=10><img src=1.gif height=10></td><td>
@@ -2413,6 +2420,10 @@ while(list($admpw,$daypw,$admmail,$listmailpath,$keycode,$linkcode,$wrapon,$wrap
       <input name=tpopaddr type=text class=xbox size=40 style=\"width: 200px\" value=\"".htmlspecialchars($popaddr)."\">
         </td><td width=15><img src=1.gif width=15></td><td valign=bottom>
          <span class=table_inside_small>Delete users if they bounce<br> <input name=tbounces type=text class=xbox size=2 maxlength=2 value=\"$bounces\" style=\"width: 20px\"> times in <input name=tbounces2 type=text class=xbox size=3 maxlength=3 value=\"$bounces2\" style=\"width: 30px\"> days.</span><br>
+        </td>
+        <td>
+            <span class=table_inside_small>Only read FROM:</span><br>
+            <input name=terrfrom type=text class=xbox size=40 style=\"width: 200px\" value=\"".htmlspecialchars($errfrom)."\" >
         </td>
        </tr>
       </table>
