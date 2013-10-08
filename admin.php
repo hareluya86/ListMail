@@ -1810,7 +1810,6 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
     if (@mysql_num_rows($mrows) > 0) {
         $first = 1;
         while (list($oid, $mtype, $uid, $lid, $msgid, $xtra) = mysql_fetch_row($mrows)) {
-            echo 'oid=' . $oid . '<br>';
             if ($first) {
                 $lastmid = $msgid;
                 $lastmt = $mtype;
