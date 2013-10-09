@@ -3824,19 +3824,25 @@ function bounce($email, $msg) {
                             $listopts = getlistopts($list);
                             // check whether to keep in db or not
                             if ($listopts[1] == 1) {
-                                $dbh->exec("update $utable set cnf = '3' where id = '$id'");
-                                if ($dbh->errorInfo())
-                                    die('admin-47-' . $dbh->errorInfo());
+                                try{
+                                    $dbh->exec("update $utable set cnf = '3' where id = '$id'");
+                                }catch(PDOException $e){
+                                    die('admin-47-' . $e->getMessage());
+                                }
                             }
                             else {
-                                $dbh->exec("delete from $utable where id = '$id'");
-                                if ($dbh->errorInfo())
-                                    die('admin-48-' . $dbh->errorInfo());
+                                try{
+                                    $dbh->exec("delete from $utable where id = '$id'");
+                                }catch(PDOException $e){
+                                    die('admin-48-' . $e->getMessage());
+                                }
                             }
                         }
-                        $dbh->exec("update $utable set bounces = '0;$today' where id = '$id'");
-                        if ($dbh->errorInfo())
-                            die('admin-49-' . $dbh->errorInfo());
+                        try{
+                            $dbh->exec("update $utable set bounces = '0;$today' where id = '$id'");
+                        }catch(PDOException $e){
+                            die('admin-49-' . $e->getMessage());
+                        }
                     } else {
                         // process
                         // check and adjust values in case number of bounces is changed to a lower number
@@ -3869,13 +3875,17 @@ function bounce($email, $msg) {
                                 // perform operation
                                 $listopts = getlistopts($list);
                                 if ($listopts[1] == 1) {
-                                    $dbh->exec("update $utable set cnf = '3' where id = '$id'");
-                                    if ($dbh->errorInfo())
-                                        die('admin-51-' . $dbh->errorInfo());
+                                    try{
+                                        $dbh->exec("update $utable set cnf = '3' where id = '$id'");
+                                    }catch(PDOException $e){
+                                        die('admin-51-' . $e->getMessage());
+                                    }
                                 } else {
-                                    $dbh->exec("delete from $utable where id = '$id'");
-                                    if ($dbh->errorInfo())
-                                        die('admin-52-' . $dbh->errorInfo());
+                                    try{
+                                        $dbh->exec("delete from $utable where id = '$id'");
+                                    }catch(PDOException $e){
+                                        die('admin-52-' . $e->getMessage());
+                                    }
                                 }
                                 // if($listopts[4]=='1') remlists($email,$list,4);
                             } else {
@@ -3886,9 +3896,11 @@ function bounce($email, $msg) {
                                     }
                                 }
                                 $n1 .= ';' . $today;
-                                $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
-                                if ($dbh->errorInfo())
-                                    die('admin-53-' . $dbh->errorInfo());
+                                try{
+                                    $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
+                                }catch(PDOException $e){
+                                    die('admin-53-' . $e->getMessage());
+                                }   
                             }
                         } else {
                             $n1 = $bounces[0] + 1;echo 'n1='.$n1.'<br>';//debug
@@ -3900,9 +3912,12 @@ function bounce($email, $msg) {
                             }
                             $n1 .= ";$today";echo 'n1='.$n1.'<br>';//debug
                             reset($bounces);
-                            $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
-                            if ($dbh->errorInfo())
-                                die('admin-54-' . $dbh->errorInfo());
+                            echo "update $utable set bounces = '$n1' where id = '$id'<br>";//debug
+                            try{
+                                $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
+                            }catch(PDOException $e){
+                                die('admin-55-' . $e->getMessage());
+                            }
                         }
                     }
                 }
@@ -3929,6 +3944,7 @@ function bounce($email, $msg) {
                             // check remove from other lists
                             // if($listopts[4]=='1') remlists($email,$list,4);
                         }
+                        echo "update $utable set bounces = '0;$today' where id = '$id'<br>";
                         mysql_query("update $utable set bounces = '0;$today' where id = '$id'") or die('admin-49-' . mysql_error());
                     } else {
                         // process
@@ -3989,6 +4005,7 @@ function bounce($email, $msg) {
                             }
                             $n1 .= ";$today";
                             reset($bounces);
+                            echo "update $utable set bounces = '$n1' where id = '$id'.<br>";//debug
                             mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-54-' . mysql_error());
                         }
                     }
@@ -4043,19 +4060,25 @@ function bounce2($email, $msg, $bouncesender) {
                             $listopts = getlistopts($list);
                             // check whether to keep in db or not
                             if ($listopts[1] == 1) {
-                                $dbh->exec("update $utable set cnf = '3' where id = '$id'");
-                                if ($dbh->errorInfo())
-                                    die('admin-47-' . $dbh->errorInfo());
+                                try{
+                                    $dbh->exec("update $utable set cnf = '3' where id = '$id'");
+                                }catch(PDOException $e){
+                                    die('admin-47-' . $e->getMessage());
+                                }   
                             }
                             else {
-                                $dbh->exec("delete from $utable where id = '$id'");
-                                if ($dbh->errorInfo())
-                                    die('admin-48-' . $dbh->errorInfo());
+                                try{
+                                    $dbh->exec("delete from $utable where id = '$id'");
+                                }catch(PDOException $e){
+                                    die('admin-48-' . $e->getMessage());
+                                }   
                             }
                         }
-                        $dbh->exec("update $utable set bounces = '0;$today' where id = '$id'");
-                        if ($dbh->errorInfo())
-                            die('admin-49-' . $dbh->errorInfo());
+                        try{
+                            $dbh->exec("update $utable set bounces = '0;$today' where id = '$id'");
+                        }catch(PDOException $e){
+                            die('admin-49-' . $e->getMessage());
+                        }   
                     } else {
                         // process
                         // check and adjust values in case number of bounces is changed to a lower number
@@ -4088,13 +4111,17 @@ function bounce2($email, $msg, $bouncesender) {
                                 // perform operation
                                 $listopts = getlistopts($list);
                                 if ($listopts[1] == 1) {
-                                    $dbh->exec("update $utable set cnf = '3' where id = '$id'");
-                                    if ($dbh->errorInfo())
-                                        die('admin-51-' . $dbh->errorInfo());
+                                    try{
+                                        $dbh->exec("update $utable set cnf = '3' where id = '$id'");
+                                    }catch(PDOException $e){
+                                        die('admin-51-' . $e->getMessage());
+                                    }
                                 } else {
-                                    $dbh->exec("delete from $utable where id = '$id'");
-                                    if ($dbh->errorInfo())
-                                        die('admin-52-' . $dbh->errorInfo());
+                                    try{
+                                        $dbh->exec("delete from $utable where id = '$id'");
+                                    }catch(PDOException $e){
+                                        die('admin-52-' . $e->getMessage());
+                                    }
                                 }
                                 // if($listopts[4]=='1') remlists($email,$list,4);
                             } else {
@@ -4105,9 +4132,11 @@ function bounce2($email, $msg, $bouncesender) {
                                     }
                                 }
                                 $n1 .= ';' . $today;
-                                $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
-                                if ($dbh->errorInfo())
-                                    die('admin-53-' . $dbh->errorInfo());
+                                try{
+                                    $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
+                                }catch(PDOException $e){
+                                    die('admin-53-' . $e->getMessage());
+                                } 
                             }
                         } else {
                             $n1 = $bounces[0] + 1;echo 'n1='.$n1.'<br>';//debug
@@ -4119,9 +4148,12 @@ function bounce2($email, $msg, $bouncesender) {
                             }
                             $n1 .= ";$today";echo 'n1='.$n1.'<br>';//debug
                             reset($bounces);
-                            $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
-                            if ($dbh->errorInfo())
-                                die('admin-54-' . $dbh->errorInfo());
+                            echo "update $utable set bounces = '$n1' where id = '$id'<br>";
+                            try{
+                                $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
+                            }catch(PDOException $e){
+                                die('admin-54-' . $e->getMessage());
+                            }   
                         }
                     }
                 }
