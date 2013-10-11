@@ -673,14 +673,16 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
 
                         // reset users
                         if ($remote) {
-                            try {
-                                $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
-                                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                                $dbh_query = $dbh->exec("update $utable set cseq = '$fs', cdel = '$fd' where list = '$list' and cseq >= '$lastf';");
-                            } catch (PDOException $e) {
-                                die('dailymail-1-' . $e->getMessage());
+                            if(!$dbh){
+                                try {
+                                    $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                                    $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                                    $dbh_query = $dbh->exec("update $utable set cseq = '$fs', cdel = '$fd' where list = '$list' and cseq >= '$lastf';");
+                                } catch (PDOException $e) {
+                                    die('dailymail-1-' . $e->getMessage());
+                                }
                             }
-                            $dbh = null; //close the connection
+                            //$dbh = null; //close the connection
                         } else {
                             mysql_query("update $utable set cseq = '$fs', cdel = '$fd' where list = '$list' and cseq >= '$lastf';");
                             if ($DEBUG)
@@ -1003,16 +1005,17 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
             //echo 'checking list'.$list.'<br>';debug
             //check if list is remote
             if ($remote) {
-                try {
-                    $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
-                    $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                    $dbh_query = $dbh->query($ucmd);
-                } catch (PDOException $e) {
-                    die('dailymail-3-' . $e->getMessage());
+                if(!$dbh){
+                    try {
+                        $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                        $dbh_query = $dbh->query($ucmd);
+                    } catch (PDOException $e) {
+                        die('dailymail-3-' . $e->getMessage());
+                    }
                 }
                 $nusers = $dbh_query->rowCount();
                 $users = $dbh_query->fetchAll();
-                $dbh = null; //close the connection
             } else {
                 $ucount = mysql_query($ucmd);
                 $nusers = @mysql_num_rows($ucount);

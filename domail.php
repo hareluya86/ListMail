@@ -82,12 +82,14 @@ if ($isadmin == 'true') {
             $result = mysql_query($remotecmd) or die(mysql_error());
             list($remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = mysql_fetch_row($result);
             if ($remote) {
-                try {
-                    $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
-                    $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                    $dbh_query = $dbh->query($cmd);
-                } catch (PDOException $e) {
-                    die('domail-' . $e->getMessage());
+                if(!$dbh){
+                    try {
+                        $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                        $dbh_query = $dbh->query($cmd);
+                    } catch (PDOException $e) {
+                        die('domail-' . $e->getMessage());
+                    }
                 }
                 $sendtousers = $dbh_query; //Store for later use
                 $urows = $sendtousers->fetchAll();

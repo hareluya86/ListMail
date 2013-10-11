@@ -613,15 +613,17 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
         $cmd = "select id,uid,list,fname,lname,email,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,dateadd,ipaddr,refurl from $utable where id = '$uid'";
 
         if ($remote) {
-            try {
-                $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
-                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                $dbh_query = $dbh->query($cmd);
-            } catch (PDOException $e) {
-                die('admin-5-' . $e->getMessage());
+            if(!$dbh){
+                try {
+                    $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                    $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                    $dbh_query = $dbh->query($cmd);
+                } catch (PDOException $e) {
+                    die('admin-5-' . $e->getMessage());
+                }
             }
             list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = $dbh_query->fetch();
-            $dbh = null; //close the connection
+            //$dbh = null; //close the connection
             //echo 'lnum:'.$lnum.'<br>';
         } else {
             $urow = mysql_query($cmd, $link) or die('admin-5-' . mysql_error());
@@ -1826,16 +1828,18 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                 // get user send vars
                 $ucmd = "select id,uid,list,fname,lname,email,htmail,bounces from $utable where id = '$uid'";
                 if ($remote) {
-                    try {
-                        $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
-                        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                    } catch (PDOException $e) {
-                        die('admin-39-' . $e->getMessage());
+                    if(!$dbh){
+                        try {
+                            $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                            $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                        } catch (PDOException $e) {
+                            die('admin-39-' . $e->getMessage());
+                        }
                     }
                     $dbh_query = $dbh->query($ucmd);
                     list($id, $unid, $mlist, $fname, $lname, $email, $htmail, $bounces) = $dbh_query->fetch(); //assuming there will only be 1 unique userid
                     $rcount = $dbh_query->rowCount();
-                    $dbh = null; //close the connection
+                    //$dbh = null; //close the connection
                 } else {
                     $urow = mysql_query($ucmd, $link) or die('admin-17-' . mysql_error());
                     echo mysql_error();
@@ -3320,17 +3324,18 @@ function sendwelcome($userid, $list) {
     //$cmd = "select uid,fname,lname,cnf,list,email,htmail,user2 from $utable where id = '$userid'";
     $cmd = "select id,uid,list,fname,lname,email,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,cseq,cdel,cnf,dateadd,ipaddr,refurl,htmail,bounces from $utable where id = '$userid'";
     if ($remote) {
-        try {
-            $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
-            $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-        } catch (PDOException $e) {
-            die('admin-39-' . $e->getMessage());
+        if(!$dbh){
+            try {
+                $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+            } catch (PDOException $e) {
+                die('admin-39-' . $e->getMessage());
+            }
         }
         $dbh_query = $dbh->query($cmd);
         //list($unid, $fname, $lname, $cnf, $list, $email, $htmail, $user2) = $dbh_query->fetch(); //assuming there will only be 1 unique userid
         list($unid, $uid, $list, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $cseq, $cdel, $cnf, $dateadd, $ipaddr, $refurl, $htmail, $bounces) = $dbh_query->fetch();
-        if ($remote)
-            $dbh = null; //close the connection
+        //$dbh = null; //close the connection
     }else {
         $urow = mysql_query($cmd, $link) or die('admin-39-' . mysql_error());
         list($unid, $uid, $list, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $cseq, $cdel, $cnf, $dateadd, $ipaddr, $refurl, $htmail, $bounces) = mysql_fetch_row($urow);
@@ -3382,14 +3387,16 @@ function sendwelcome($userid, $list) {
         // confirm
         $cmd = "update $utable set cnf = '0' where id = '$id'";
         if ($remote) {
-            try {
-                $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
-                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                $dbh->exec($cmd);
-            } catch (PDOException $e) {
-                die('admin-43-' . $e->getMessage());
+            if(!$dbh){
+                try {
+                    $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                    $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                    $dbh->exec($cmd);
+                } catch (PDOException $e) {
+                    die('admin-43-' . $e->getMessage());
+                }
             }
-            $dbh = null; //close the connection
+            //$dbh = null; //close the connection
         } else {
             @mysql_query($cmd, $link) or die('admin-43-' . mysql_error());
         }
@@ -3802,12 +3809,14 @@ function bounce($email, $msg) {
     while (list($lid,$listnum, $ltitle, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = @mysql_fetch_row($lrow)) {
         echo 'This is list num '.$listnum.'<br>';//debug
         if ($remote) {
-            try {
-                $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
-                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                $dbh_query = $dbh->query($ucmd);
-            } catch (PDOException $e) {
-                die('admin-5-' . $e->getMessage());
+            if(!$dbh){
+                try {
+                    $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                    $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                    $dbh_query = $dbh->query($ucmd);
+                } catch (PDOException $e) {
+                    die('admin-5-' . $e->getMessage());
+                }
             }
             if ($dbh_query->rowCount() > 0) {
                 while (list($id, $list, $email, $bounces) = $dbh_query->fetch()) {
@@ -4038,12 +4047,14 @@ function bounce2($email, $msg, $bouncesender) {
     while (list($lid,$listnum, $ltitle, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = @mysql_fetch_row($lrow)) {
         echo 'This is list num '.$listnum.'<br>';//debug
         if ($remote) {
-            try {
-                $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
-                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                $dbh_query = $dbh->query($ucmd);
-            } catch (PDOException $e) {
-                die('admin-5-' . $e->getMessage());
+            if(!$dbh){
+                try {
+                    $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                    $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                    $dbh_query = $dbh->query($ucmd);
+                } catch (PDOException $e) {
+                    die('admin-5-' . $e->getMessage());
+                }
             }
             if ($dbh_query->rowCount() > 0) {
                 while (list($id, $list, $email, $bounces) = $dbh_query->fetch()) {
@@ -4618,13 +4629,15 @@ function remlists($email, $list, $opt = '', $multis = '') {
             } else {
                 $cmd = "delete from $utable where email like '$email' and list = '$v';";
             }
-            if ($remote) { echo "list $v is a remote list";//debug
-                try {
-                    $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
-                    $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                    $dbh->exec($cmd);
-                } catch (PDOException $e) {
-                    echo $e->getMessage().'<br>';//debug
+            if ($remote) { 
+                if(!$dbh){
+                    try {
+                        $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                        $dbh->exec($cmd);
+                    } catch (PDOException $e) {
+                        echo $e->getMessage().'<br>';//debug
+                    }
                 }
             } else{echo "list $v is not a remote list";//debug
                  mysql_query($cmd);
