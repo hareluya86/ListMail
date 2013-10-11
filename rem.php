@@ -159,10 +159,10 @@ if(!$error){
     $dbh = null;//close the connection
  }else{
      $temprows = mysql_query($cmd);
-     echo $cmd;//debug
+     //echo $cmd;//debug
      $rows = array();
      while($temprow = mysql_fetch_array($temprows)){
-         $rows[] = $temprow;echo $temprow['id'].'<br>';
+         $rows[] = $temprow;//echo $temprow['id'].'<br>';
      }
  }
  
@@ -176,7 +176,7 @@ if(!$error){
   foreach($rows as $row){
    list($id,$uniqid,$ln,$fname) = $row;   //echo 'id = '.$id.'<br>';//debug
    // loop results, deleting IF $delete, if not, simply display confirm page
-   if($delete){echo 'deleting...<br>';
+   if($delete){//echo 'deleting...<br>';
     // do it
     $narr = getnotifs($ln);
     if($narr[1]=='1') sendnotif('remove',$id);
@@ -243,6 +243,6 @@ if($error){
     }
  }
  if($delcmd) while(list($k,$v)=each($delcmd)) mysql_query($v);
- if(strpos(' '.$data,'URL:')=='1') header('Location: '.str_replace('URL:','',$data)); else echo $data;  exit;
+ if(strpos(' '.$data,'URL:')=='1') header('Location: '.str_replace('URL:','',$data)); else echo $data; exit;
 
 ?>

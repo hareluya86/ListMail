@@ -4607,10 +4607,27 @@ function remlists($email, $list, $opt = '', $multis = '') {
     while (list($k, $v) = each($rl)) {
         if (($multis && !in_array($v, $multis)) || !$multis) {
             $listopts = getlistopts($v);
+            //check if remote
+            $lcmd = "select remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$v';";
+            echo $lcmd.'<br>';//debug
+            list($remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = 
+                     mysql_fetch_row(mysql_query($lcmd));
+            echo 'remote='.$remote.'<br>';//debug
             if ($listopts[1] == '1') {
-                mysql_query("update $utable set cnf = '2' where email like '$email' and list = '$v';");
+                $cmd = "update $utable set cnf = '2' where email like '$email' and list = '$v';";
             } else {
-                mysql_query("delete from $utable where email like '$email' and list = '$v';");
+                $cmd = "delete from $utable where email like '$email' and list = '$v';";
+            }
+            if ($remote) { echo "list $v is a remote list";//debug
+                try {
+                    $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                    $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                    $dbh->exec($cmd);
+                } catch (PDOException $e) {
+                    echo $e->getMessage().'<br>';//debug
+                }
+            } else{echo "list $v is not a remote list";//debug
+                 mysql_query($cmd);
             }
             if (@mysql_affected_rows() > 0) {
                 if (!$f)
@@ -4629,7 +4646,7 @@ function remlists($email, $list, $opt = '', $multis = '') {
         if (strpos($ly, ',') > 0)
             $lx .= 's '; else
             $lx .= ' ';
-        $logtxt = $lx . $ly . '. ';
+        $logtxt .= $lx . $ly . '. ';
     }
 }
 
