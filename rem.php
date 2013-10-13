@@ -74,19 +74,21 @@ if(!$error){
  $lrow = @mysql_query($lcmd, $link) or die('admin-6-' . mysql_error());
  list($ltitle,$remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = @mysql_fetch_row($lrow);
  if($remote){
-    try {
-        $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
-        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-        $dbh_query = $dbh->query($ucmd);
-    } catch (PDOException $e) {
-        die('rem-1-' . $e->getMessage());
-    }
+     if(!$dbh){
+        try {
+            $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+            $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+            $dbh_query = $dbh->query($ucmd);
+        } catch (PDOException $e) {
+            die('rem-1-' . $e->getMessage());
+        }
+     }
     if($dbh_query->rowCount()>0){
         list($cid,$list,$email) = $dbh_query->fetch();
     }else{
         $error = 'rem_nf';
     }
-    $dbh = null;//close the connection
+    //$dbh = null;//close the connection
  }else{
     $rows = mysql_query($ucmd) or die(mysql_error());
     //echo $ucmd.'<br>';//debug
@@ -144,19 +146,21 @@ if(!$error){
  }
  $cmd .= ')'; 
  if($remote){
-    try {
-        $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
-        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-        $dbh_query = $dbh->query($cmd);
-    } catch (PDOException $e) {
-        die('rem-2-' . $e->getMessage());
-    }
+     if(!$dbh){
+        try {
+            $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+            $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+            $dbh_query = $dbh->query($cmd);
+        } catch (PDOException $e) {
+            die('rem-2-' . $e->getMessage());
+        }
+     }
     if($dbh_query->rowCount()>0){
         $rows = $dbh_query->fetchAll();
     }else{
         $error = 'rem_nf';
     }
-    $dbh = null;//close the connection
+    //$dbh = null;//close the connection
  }else{
      $temprows = mysql_query($cmd);
      //echo $cmd;//debug
@@ -190,14 +194,16 @@ if(!$error){
       //echo "updating $id to Removed..<br>";//debug
       $cmd = "update $utable set cnf = '2' where id = '$id';";
       if($remote){
-        try {
-            $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
-            $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-            $dbh_query = $dbh->query($cmd);
-        } catch (PDOException $e) {
-            die('rem-2-' . $e->getMessage());
-        }
-        $dbh = null;//close the connection
+          if(!$dbh){
+            try {
+                $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                $dbh_query = $dbh->query($cmd);
+            } catch (PDOException $e) {
+                die('rem-2-' . $e->getMessage());
+            }
+          }
+        //$dbh = null;//close the connection
       }else{
           mysql_query($cmd);
       }

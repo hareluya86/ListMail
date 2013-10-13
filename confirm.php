@@ -16,14 +16,17 @@ list($title, $sendn, $sende, $welcact, $cnfact, $remote, $remotedb, $remoteuser,
 
 $cmd = "select id,uid,list,fname,lname,email,user1,user2,user3,user4,user5,user6,user7,user8,user9,user10,cseq,cdel,cnf,dateadd,ipaddr,refurl,htmail from $utable where uid = '$u'";
 if($remote){
-    try {
-        $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
-        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-    } catch (PDOException $e) {
-        die('admin-39-' . $e->getMessage());
-    }
+    //if(!$dbh){
+        try {
+            $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+            $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+        } catch (PDOException $e) {
+            die('confirm-1-' . $e->getMessage());
+        }
+    //}
     $dbh_query = $dbh->query($cmd);
     //list($unid,$uid,$list,$fname,$lname,$email,$user1,$user2,$user3,$user4,$user5,$user6,$user7,$user8,$user9,$user10,$cseq,$cdel,$cnf,$dateadd,$ipaddr,$refurl,$htmail,$bounces)= $dbh_query->fetch();
+    if($dbh_query->rowCount()==0){ echo "There was a problem processing your confirmation. You may not have responded in time, or may have accidentally subscribed to our list twice by double-clicking the signup form button or refreshing the post-signup page.  Please click the confirmation link in the most recent email you received or re-subscribe."; exit; }
     list($id,$uid,$list,$fname,$lname,$email,$user1,$user2,$user3,$user4,$user5,$user6,$user7,$user8,$user9,$user10,$userseq,$userdel,$confirmed,$today,$ipaddr,$refurl,$html) = $dbh_query->fetch();
     //$dbh = null; //close the connection
 }else{
@@ -37,9 +40,18 @@ if($confirmed=='1'){
  $eid = listopts('errorid',$list);
  $data = chtml('suberror',$chid);
  list($data) = processmsg($id,$data,'','','0');
- $msg = emsg('email_dupe',$eid).'<br>';
- $data = str_replace('!data',$msg,$data);
- if(strpos(' '.$data,'URL:')==1) header('Location: '.str_replace('URL:','',$data)); else echo $data;
+ //list($data) = 
+ //   processmsg2($id, $uid, $list, $fname, $lname, $email, $refurl, $ipaddr, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $data);
+ //processmsg2($id, $usid, $lnum, $fname, $lname, $email, $refu, $uip, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $subj)
+ $msg = emsg('email_dupe',$eid);//.'<br>';
+ if(strpos(' '.$msg,'URL:')==1) header('Location: '.str_replace('URL:','',$msg));
+ $msg = $msg.'<br>';
+ $data = str_replace('!data',$msg,$data); //echo 'data='.$data;//debug
+ if(strpos(' '.$data,'URL:')==1)
+         header('Location: '.str_replace('URL:','',$data));
+ else{
+     echo $data;
+ }
  exit();
 }
      
@@ -49,7 +61,7 @@ if($remote){
     if(!$dbh->exec($cmd)){
         
     }else{
-        echo 'Update status and ipaddr success!<br>';
+        //echo 'Update status and ipaddr success!<br>';//debug
     }
 }else{
     mysql_query("update $utable set cnf = '1', ipaddr = '".addslashes($ipaddr)."' where id = '".addslashes($id)."'");

@@ -18,13 +18,15 @@ include("./admin.php");
 list($remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = @mysql_fetch_row(mysql_query("select remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$list'"));
 $dbh = '';
 if($remote){
-    try {
-        $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
-        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-     } catch (PDOException $e) {
-        echo 'Connection failed: ' . $e->getMessage();
-        exit();
-     }
+    if(!$dbh){
+        try {
+            $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+            $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+        } catch (PDOException $e) {
+            echo 'Connection failed: ' . $e->getMessage();
+            exit();
+        }
+    }
 }
 if($list && !$lists && !$cgi){
  $lists = array();
@@ -138,10 +140,8 @@ while(list($key,$list)=each($lists)){
         //echo 'check if allow duplicates'.'<br>';//debug
         if($remote){
             $pdo_query = $dbh->query($cmd);
-            $pdo_num_results = $pdo_query->rowCount();
+            $pdo_num_results = $pdo_query->rowCount();//echo 'pdo_num_results='.$pdo_num_results.'<br>';//debug
             if($pdo_num_results > 0){
-                //header("Location: http://www.airnavsystems.com/downhere.html"); //hard-coded stuff...
-                //die();
                 list($xid,$xuid,$xcnf)=$pdo_query->fetch();
                 if($xcnf<>'1'){
                     // overwrite
@@ -335,17 +335,26 @@ while(list($key,$list)=each($oklists)){
  
  $cmd = "INSERT INTO $utable VALUES (NULL,'$uid','$list','$fname','$lname','$email','$user1','$user2','$user3','$user4','$user5','$user6','$user7','$user8','$user9','$user10','$userseq','$userdel','$confirmed','$today','$ipaddr','$refurl','$html','0');";
  if($remote){ //open connection to remote host
-     try {
-        $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
-        $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-     } catch (PDOException $e) {
+     //if(!$dbh){
+        try {
+            $pdo_db = 'mysql:dbname='.$remotedb.';host='.$remotehost;
+            $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+        } catch (PDOException $e) {
+            echo 'Connection failed: ' . $e->getMessage();
+            exit();
+        }
+     //}
+     //$dbh->query("use $remotedb") or die('db error:'.$dbh->errorInfo());
+     $dbh->query($cmd);// or die("Database error while inserting..".$dbh->errorInfo());
+     $userid = $dbh->lastInsertId();//echo "last insert id: ".$userid."<br>";//
+     //$dbh = null; //Close the connection
+     /*try{
+        $dbh->exec($cmd);
+        $userid = $dbh->lastInsertId();
+     }catch (PDOException $e) {
         echo 'Connection failed: ' . $e->getMessage();
         exit();
-     }
-     $dbh->query("use $remotedb") or die($dbh->errorInfo());
-     $dbh->exec($cmd) or die($dbh->errorInfo());
-     $userid = $dbh->lastInsertId();
-     $dbh = null; //Close the connection
+    }*/
  }
  else{
      mysql_query($cmd) or die("Database error while inserting..".mysql_error());

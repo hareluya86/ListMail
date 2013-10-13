@@ -581,7 +581,7 @@ function checkpw($inpw) {
 }
 
 // end checkpw
-
+//For non-user specific operation use
 function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '', $mid = '', $r = '') {
     global $dtable;
     global $ktable;
@@ -617,16 +617,16 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
                 try {
                     $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                     $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                    $dbh_query = $dbh->query($cmd);
                 } catch (PDOException $e) {
-                    die('admin-5-' . $e->getMessage());
+                    die('admin-6-' . $e->getMessage());
                 }
             }
+            $dbh_query = $dbh->query($cmd);
             list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = $dbh_query->fetch();
             //$dbh = null; //close the connection
             //echo 'lnum:'.$lnum.'<br>';
         } else {
-            $urow = mysql_query($cmd, $link) or die('admin-5-' . mysql_error());
+            $urow = mysql_query($cmd, $link) or die('admin-6-' . mysql_error());
             list($id, $usid, $lnum, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $dadd, $uip, $refu) = mysql_fetch_row($urow);
         }
     } else {
@@ -893,6 +893,7 @@ function processmsg($uid, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '
     return $outarr;
 }
 
+//For user-specific operation use
 function processmsg2($id, $usid, $lnum, $fname, $lname, $email, $refu, $uip, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $subj, $msg = '', $htmsg = '', $mhtml = '0', $mtyp = '', $mid = '', $r = '') {
     global $dtable;
     global $ktable;
@@ -2293,7 +2294,8 @@ function domail($sendq = '', $sendt = '', $xid = '', $batch) {
                                             $pipeline = '';
 //         $pipeline = ''; echo "PIPELINING OFF!<br>"; flush();
                                         // auth
-                                        if ($mtauth && strpos($srvmsg, 'AUTH LOGIN') > 0) {
+                                        //if ($mtauth && strpos($srvmsg, 'AUTH LOGIN') > 0) {
+                                        if ($mtauth && strpos($srvmsg, 'AUTH') > 0) {
                                             // EHLO says auth is good
                                             $smtpcmd = "AUTH LOGIN\r\n";
                                             if ($smtp_debug)
@@ -3329,7 +3331,7 @@ function sendwelcome($userid, $list) {
                 $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                 $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
             } catch (PDOException $e) {
-                die('admin-39-' . $e->getMessage());
+                die('admin-61-' . $e->getMessage());
             }
         }
         $dbh_query = $dbh->query($cmd);
@@ -3337,7 +3339,7 @@ function sendwelcome($userid, $list) {
         list($unid, $uid, $list, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $cseq, $cdel, $cnf, $dateadd, $ipaddr, $refurl, $htmail, $bounces) = $dbh_query->fetch();
         //$dbh = null; //close the connection
     }else {
-        $urow = mysql_query($cmd, $link) or die('admin-39-' . mysql_error());
+        $urow = mysql_query($cmd, $link) or die('admin-61-' . mysql_error());
         list($unid, $uid, $list, $fname, $lname, $email, $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $cseq, $cdel, $cnf, $dateadd, $ipaddr, $refurl, $htmail, $bounces) = mysql_fetch_row($urow);
     }
 
@@ -3785,8 +3787,8 @@ function detectpath($p, $fn = '') {
     }
 }
 
-// process and delete bouncing users based on email 2003-02-13
-function bounce($email, $msg) {
+//bounce processing for remote lists
+function bounce_remote($email, $msg) {
     global $utable;
     global $ctable;
     global $ltable;
@@ -3809,19 +3811,20 @@ function bounce($email, $msg) {
     while (list($lid,$listnum, $ltitle, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = @mysql_fetch_row($lrow)) {
         echo 'This is list num '.$listnum.'<br>';//debug
         if ($remote) {
-            if(!$dbh){
+            //if(!$dbh){
                 try {
                     $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                     $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                    $dbh_query = $dbh->query($ucmd);
+                    //echo ++$debug_conn.'<br>';//debug
                 } catch (PDOException $e) {
-                    die('admin-5-' . $e->getMessage());
+                    die('admin-5-' . $e->getMessage());// echo 'This is it: '.$email.'<br>';//debug
                 }
-            }
+            //}
+            $dbh_query = $dbh->query($ucmd);
             if ($dbh_query->rowCount() > 0) {
                 while (list($id, $list, $email, $bounces) = $dbh_query->fetch()) {
                     if($list <> $listnum) continue;
-                    echo 'id='.$id.', list='.$list.', email='.$email.'<br>';//debug
+                    //echo 'id='.$id.', list='.$list.', email='.$email.'<br>';//debug
                     $bounces = explode(';', $bounces);
                     $today = date("Ymd", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
 
@@ -3912,16 +3915,16 @@ function bounce($email, $msg) {
                                 }   
                             }
                         } else {
-                            $n1 = $bounces[0] + 1;echo 'n1='.$n1.'<br>';//debug
-                            $n1 = "$n1";echo 'n1='.$n1.'<br>';//debug
+                            $n1 = $bounces[0] + 1;//echo 'n1='.$n1.'<br>';//debug
+                            $n1 = "$n1";//echo 'n1='.$n1.'<br>';//debug
                             while (list($key, $val) = each($bounces)) {
                                 if ($key <> 0) {
-                                    $n1 .= ";$val";echo 'n1='.$n1.'<br>';//debug
+                                    $n1 .= ";$val";//echo 'n1='.$n1.'<br>';//debug
                                 }
                             }
-                            $n1 .= ";$today";echo 'n1='.$n1.'<br>';//debug
+                            $n1 .= ";$today";//echo 'n1='.$n1.'<br>';//debug
                             reset($bounces);
-                            echo "update $utable set bounces = '$n1' where id = '$id'<br>";//debug
+                            //echo "update $utable set bounces = '$n1' where id = '$id'<br>";//debug
                             try{
                                 $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
                             }catch(PDOException $e){
@@ -3930,7 +3933,7 @@ function bounce($email, $msg) {
                         }
                     }
                 }
-            }
+            }$dbh = null; //close connection
         }else {
             $urows = mysql_query($ucmd) or die('admin-45-' . mysql_error());
             if (@mysql_num_rows($urows) > 0) {
@@ -3939,7 +3942,7 @@ function bounce($email, $msg) {
                     $bounces = explode(';', $bounces);
                     $today = date("Ymd", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
 
-                    if (!$bounces[1]) {echo 'num = '.$num.'<br>';//debug
+                    if (!$bounces[1]) {//echo 'num = '.$num.'<br>';//debug
                         if ($num == '1') {
                             $narr = getnotifs($list);
                             if ($narr[3] == '1')
@@ -3958,7 +3961,7 @@ function bounce($email, $msg) {
                     } else {
                         // process
                         // check and adjust values in case number of bounces is changed to a lower number
-                        echo 'bounces = '.count($bounces).'<br>';//debug
+                        //echo 'bounces = '.count($bounces).'<br>';//debug
                         if (count($bounces) > $num) {
                             $xbounces = $bounces;
                             $bounces = array();
@@ -3988,7 +3991,7 @@ function bounce($email, $msg) {
                                 // perform operation
                                 $listopts = getlistopts($list);
                                 if ($listopts[1] == 1) {
-                                    echo "update $utable set cnf = '3' where id = '$id'<br>";//debug
+                                    //echo "update $utable set cnf = '3' where id = '$id'<br>";//debug
                                     mysql_query("update $utable set cnf = '3' where id = '$id'") or die('admin-51-' . mysql_error());
                                 } else {
                                     mysql_query("delete from $utable where id = '$id'") or die('admin-52-' . mysql_error());
@@ -4005,7 +4008,7 @@ function bounce($email, $msg) {
                                 mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-53-' . mysql_error());
                             }
                         } else {
-                            $n1 = $bounces[0] + 1;echo 'n1='.$n1.'<br>';//debug
+                            $n1 = $bounces[0] + 1;//echo 'n1='.$n1.'<br>';//debug
                             $n1 = "$n1";
                             while (list($key, $val) = each($bounces)) {
                                 if ($key <> 0) {
@@ -4014,7 +4017,7 @@ function bounce($email, $msg) {
                             }
                             $n1 .= ";$today";
                             reset($bounces);
-                            echo "update $utable set bounces = '$n1' where id = '$id'.<br>";//debug
+                            //echo "update $utable set bounces = '$n1' where id = '$id'.<br>";//debug
                             mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-54-' . mysql_error());
                         }
                     }
@@ -4024,7 +4027,7 @@ function bounce($email, $msg) {
     }
 }
 
-function bounce2($email, $msg, $bouncesender) {
+function bounce($email, $msg) {
     global $utable;
     global $ctable;
     global $ltable;
@@ -4035,8 +4038,8 @@ function bounce2($email, $msg, $bouncesender) {
     $file = './attach/bounces_' . date('Ymd') . '.txt';
     file_put_contents($file, $email . '\r\n', FILE_APPEND);
 
-    $brow = mysql_query("select errfrom,nbounce from $ctable where 1", $link) or die('admin-44-' . mysql_error());
-    list($errfrom,$nbounce) = mysql_fetch_row($brow);
+    $brow = mysql_query("select nbounce from $ctable where 1", $link) or die('admin-44-' . mysql_error());
+    list($nbounce) = mysql_fetch_row($brow);
     list($num, $days) = explode(':', $nbounce);
 
     //when an email is bounced, I do not know which list it belongs to, so I have to loop through all lists and update all database
@@ -4045,21 +4048,22 @@ function bounce2($email, $msg, $bouncesender) {
     $lcmd = "select id,listnum,title,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable";
     $lrow = @mysql_query($lcmd, $link) or die('admin-6-' . mysql_error());
     while (list($lid,$listnum, $ltitle, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = @mysql_fetch_row($lrow)) {
-        echo 'This is list num '.$listnum.'<br>';//debug
+        //echo 'This is list num '.$listnum.'<br>';//debug
         if ($remote) {
             if(!$dbh){
                 try {
                     $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                     $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                    $dbh_query = $dbh->query($ucmd);
+                    //echo ++$debug_conn.'<br>';//debug
                 } catch (PDOException $e) {
-                    die('admin-5-' . $e->getMessage());
+                    die('admin-5-' . $e->getMessage().'This is it: '.$email.'<br>'); echo 'This is it: '.$email.'<br>';//debug
                 }
             }
+            $dbh_query = $dbh->query($ucmd);
             if ($dbh_query->rowCount() > 0) {
                 while (list($id, $list, $email, $bounces) = $dbh_query->fetch()) {
                     if($list <> $listnum) continue;
-                    echo 'id='.$id.', list='.$list.', email='.$email.'<br>';//debug
+                    //echo 'id='.$id.', list='.$list.', email='.$email.'<br>';//debug
                     $bounces = explode(';', $bounces);
                     $today = date("Ymd", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
 
@@ -4075,21 +4079,21 @@ function bounce2($email, $msg, $bouncesender) {
                                     $dbh->exec("update $utable set cnf = '3' where id = '$id'");
                                 }catch(PDOException $e){
                                     die('admin-47-' . $e->getMessage());
-                                }   
+                                }
                             }
                             else {
                                 try{
                                     $dbh->exec("delete from $utable where id = '$id'");
                                 }catch(PDOException $e){
                                     die('admin-48-' . $e->getMessage());
-                                }   
+                                }
                             }
                         }
                         try{
                             $dbh->exec("update $utable set bounces = '0;$today' where id = '$id'");
                         }catch(PDOException $e){
                             die('admin-49-' . $e->getMessage());
-                        }   
+                        }
                     } else {
                         // process
                         // check and adjust values in case number of bounces is changed to a lower number
@@ -4147,24 +4151,24 @@ function bounce2($email, $msg, $bouncesender) {
                                     $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
                                 }catch(PDOException $e){
                                     die('admin-53-' . $e->getMessage());
-                                } 
+                                }   
                             }
                         } else {
-                            $n1 = $bounces[0] + 1;echo 'n1='.$n1.'<br>';//debug
-                            $n1 = "$n1";echo 'n1='.$n1.'<br>';//debug
+                            $n1 = $bounces[0] + 1;//echo 'n1='.$n1.'<br>';//debug
+                            $n1 = "$n1";//echo 'n1='.$n1.'<br>';//debug
                             while (list($key, $val) = each($bounces)) {
                                 if ($key <> 0) {
-                                    $n1 .= ";$val";echo 'n1='.$n1.'<br>';//debug
+                                    $n1 .= ";$val";//echo 'n1='.$n1.'<br>';//debug
                                 }
                             }
-                            $n1 .= ";$today";echo 'n1='.$n1.'<br>';//debug
+                            $n1 .= ";$today";//echo 'n1='.$n1.'<br>';//debug
                             reset($bounces);
-                            echo "update $utable set bounces = '$n1' where id = '$id'<br>";
+                            //echo "update $utable set bounces = '$n1' where id = '$id'<br>";//debug
                             try{
                                 $dbh->exec("update $utable set bounces = '$n1' where id = '$id'");
                             }catch(PDOException $e){
-                                die('admin-54-' . $e->getMessage());
-                            }   
+                                die('admin-55-' . $e->getMessage());
+                            }
                         }
                     }
                 }
@@ -4177,7 +4181,7 @@ function bounce2($email, $msg, $bouncesender) {
                     $bounces = explode(';', $bounces);
                     $today = date("Ymd", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
 
-                    if (!$bounces[1]) {echo 'num = '.$num.'<br>';//debug
+                    if (!$bounces[1]) {//echo 'num = '.$num.'<br>';//debug
                         if ($num == '1') {
                             $narr = getnotifs($list);
                             if ($narr[3] == '1')
@@ -4191,11 +4195,12 @@ function bounce2($email, $msg, $bouncesender) {
                             // check remove from other lists
                             // if($listopts[4]=='1') remlists($email,$list,4);
                         }
+                        echo "update $utable set bounces = '0;$today' where id = '$id'<br>";
                         mysql_query("update $utable set bounces = '0;$today' where id = '$id'") or die('admin-49-' . mysql_error());
                     } else {
                         // process
                         // check and adjust values in case number of bounces is changed to a lower number
-                        echo 'bounces = '.count($bounces).'<br>';//debug
+                        //echo 'bounces = '.count($bounces).'<br>';//debug
                         if (count($bounces) > $num) {
                             $xbounces = $bounces;
                             $bounces = array();
@@ -4225,7 +4230,7 @@ function bounce2($email, $msg, $bouncesender) {
                                 // perform operation
                                 $listopts = getlistopts($list);
                                 if ($listopts[1] == 1) {
-                                    echo "update $utable set cnf = '3' where id = '$id'<br>";//debug
+                                    //echo "update $utable set cnf = '3' where id = '$id'<br>";//debug
                                     mysql_query("update $utable set cnf = '3' where id = '$id'") or die('admin-51-' . mysql_error());
                                 } else {
                                     mysql_query("delete from $utable where id = '$id'") or die('admin-52-' . mysql_error());
@@ -4242,7 +4247,7 @@ function bounce2($email, $msg, $bouncesender) {
                                 mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-53-' . mysql_error());
                             }
                         } else {
-                            $n1 = $bounces[0] + 1;echo 'n1='.$n1.'<br>';//debug
+                            $n1 = $bounces[0] + 1;//echo 'n1='.$n1.'<br>';//debug
                             $n1 = "$n1";
                             while (list($key, $val) = each($bounces)) {
                                 if ($key <> 0) {
@@ -4251,6 +4256,7 @@ function bounce2($email, $msg, $bouncesender) {
                             }
                             $n1 .= ";$today";
                             reset($bounces);
+                            //echo "update $utable set bounces = '$n1' where id = '$id'.<br>";//debug
                             mysql_query("update $utable set bounces = '$n1' where id = '$id'") or die('admin-54-' . mysql_error());
                         }
                     }
@@ -4620,10 +4626,10 @@ function remlists($email, $list, $opt = '', $multis = '') {
             $listopts = getlistopts($v);
             //check if remote
             $lcmd = "select remote,remotedb,remoteuser,remotepwd,remotehost from $ltable where listnum = '$v';";
-            echo $lcmd.'<br>';//debug
+            //echo $lcmd.'<br>';//debug
             list($remote,$remotedb,$remoteuser,$remotepwd,$remotehost) = 
                      mysql_fetch_row(mysql_query($lcmd));
-            echo 'remote='.$remote.'<br>';//debug
+            //echo 'remote='.$remote.'<br>';//debug
             if ($listopts[1] == '1') {
                 $cmd = "update $utable set cnf = '2' where email like '$email' and list = '$v';";
             } else {
@@ -4639,7 +4645,7 @@ function remlists($email, $list, $opt = '', $multis = '') {
                         echo $e->getMessage().'<br>';//debug
                     }
                 }
-            } else{echo "list $v is not a remote list";//debug
+            } else{//echo "list $v is not a remote list";//debug
                  mysql_query($cmd);
             }
             if (@mysql_affected_rows() > 0) {

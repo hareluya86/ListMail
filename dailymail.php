@@ -11,6 +11,7 @@ ini_set("max_execution_time", "0");
 
 // show debug info
 // $DEBUG = true;
+$debug_conn = 0;
 
 if ($argv[1])
     $pw = $argv[1];
@@ -496,11 +497,11 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                                         $line2 = str_replace(' ', '', $line2);//echo 'line2='.$line2.'<br>';
                                         $from = $line2;
                                     }
-                                }echo 'Target='.$target.'<br>';//debug
-                                echo 'From='.$from.'<br>';//debug
+                                }//echo 'Target='.$target.'<br>';//debug
+                                //echo 'From='.$from.'<br>';//debug
                                 if ($target && $from == $errfrom)
-                                    bounce($target, $em); //loops through ALL lists to update email bounce debug
-                                    //bounce2($target, $em, $from); should not use bounce2 because it should be detected that email is not a bounce email before calling bounce()
+                                    //bounce($target, $em); //loops through ALL lists to update email bounce debug
+                                    bounce_remote($target, $em);// should not use bounce2 because it should be detected that email is not a bounce email before calling bounce()
                                 else continue;
                                     
                                 $stats[0]['bouncing']++; //total number of bounces
@@ -570,16 +571,19 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                         $stats[0]['scheduled'] .= "Scheduled Email to Selection \"" . rname($tors) . "\": $qsubj\n";
                     }
                     if($remote){
-                        try {
-                            $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
-                            $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                            $dbh_query = $dbh->query($cmd);
-                            $numsent = $dbh_query->rowCount();
-                            $urows = $dbh_query->fetchAll();
-                        } catch (PDOException $e) {
-                            die('dailymail-4-' . $e->getMessage());
+                        if(!$dbh){
+                            try {
+                                $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                                echo ++$debug_conn.'<br>';//debug
+                            } catch (PDOException $e) {
+                                die('dailymail-4-' . $e->getMessage());
+                            }
                         }
-                        $dbh = null; //close the connection
+                        $dbh_query = $dbh->query($cmd);
+                        $numsent = $dbh_query->rowCount();
+                        $urows = $dbh_query->fetchAll();
+                        //$dbh = null; //close the connection
                     }else{
                         $uresult = mysql_query($cmd);
                         $urows = array();
@@ -677,11 +681,12 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                                 try {
                                     $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                                     $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                                    $dbh_query = $dbh->exec("update $utable set cseq = '$fs', cdel = '$fd' where list = '$list' and cseq >= '$lastf';");
+                                    echo ++$debug_conn.'<br>';//debug
                                 } catch (PDOException $e) {
                                     die('dailymail-1-' . $e->getMessage());
                                 }
                             }
+                            $dbh_query = $dbh->exec("update $utable set cseq = '$fs', cdel = '$fd' where list = '$list' and cseq >= '$lastf';");
                             //$dbh = null; //close the connection
                         } else {
                             mysql_query("update $utable set cseq = '$fs', cdel = '$fd' where list = '$list' and cseq >= '$lastf';");
@@ -696,19 +701,22 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                             echo "set loading on % complete is enabled<br>";
                         // get total active users on list
                         if($remote){
-                            try {
-                                $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
-                                $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                                $dbh_query = $dbh->query("select id,cseq from $utable where list = '$list' and cnf = '1';");
-                                $nu = $dbh_query->rowCount();
-                                $nue = 0;
-                                while(list($id,$cseq)=$dbh_query->fetch()){
-                                    if($cseq >= $lastf) $nue++;
+                            if(!$dbh){
+                                try {
+                                    $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
+                                    $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
+                                    echo ++$debug_conn.'<br>';//debug
+                                } catch (PDOException $e) {
+                                    die('dailymail-2-' . $e->getMessage());
                                 }
-                            } catch (PDOException $e) {
-                                die('dailymail-2-' . $e->getMessage());
                             }
-                            $dbh = null; //close the connection
+                            $dbh_query = $dbh->query("select id,cseq from $utable where list = '$list' and cnf = '1';");
+                            $nu = $dbh_query->rowCount();
+                            $nue = 0;
+                            while(list($id,$cseq)=$dbh_query->fetch()){
+                                if($cseq >= $lastf) $nue++;
+                            }
+                            //$dbh = null; //close the connection
                         }else{
                             $rows = mysql_query("select id from $utable where list = '$list' and cnf = '1';");
                             $nu = @mysql_num_rows($rows);
@@ -1009,11 +1017,11 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                     try {
                         $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                         $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                        $dbh_query = $dbh->query($ucmd);
                     } catch (PDOException $e) {
                         die('dailymail-3-' . $e->getMessage());
                     }
                 }
+                $dbh_query = $dbh->query($ucmd);
                 $nusers = $dbh_query->rowCount();
                 $users = $dbh_query->fetchAll();
             } else {
