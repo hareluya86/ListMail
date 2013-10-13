@@ -1,7 +1,7 @@
 <?php
 include("./config.php");
 include("./admin.php");
-$csvfile = './list/RB24 list 20131010.csv';
+$csvfile = './list/RB24 list 20131010 - fixed.csv';
 $list = 1000;
 
 $csv = fopen($csvfile, 'r');
@@ -279,12 +279,13 @@ while (list($email) = fgetcsv($csv)) {
             if ($closed[$badlists[0]])
                 $msg .= 'You may not subscribe to a closed list!<br>';
             elseif ($dupes[$badlists[0]])
-                $msg .= emsg('email_dupe', $eid) . '<br>';
+                $msg .= emsg('email_dupe', $eid) . ': '.$email.'<br>';
             else {
                 if ($rem)
                     $msg .= emsg('email_req', $eid) . '<br>';
                 elseif ($bademails[$badlists[0]])
-                    $msg .= emsg('email_bad', $eid) . '<br>';
+                    //$msg .= emsg('email_bad', $eid) . '<br>';
+                    $msg .= emsg('email_bad', $eid) . ': '.$email.'<br>';
                 if ($rfn)
                     $msg .= emsg('fname_req', $eid) . '<br>';
                 if ($rln)
@@ -302,9 +303,9 @@ while (list($email) = fgetcsv($csv)) {
             }
             else
                 echo $data;
-            exit;
+            //exit; don't exit for duplicated cases
         } else {
-            exit();
+            //exit();
         }
     }
 
@@ -391,7 +392,7 @@ while (list($email) = fgetcsv($csv)) {
 
         $cmd = "INSERT INTO $utable VALUES (NULL,'$uid','$list','$fname','$lname','$email','$user1','$user2','$user3','$user4','$user5','$user6','$user7','$user8','$user9','$user10','$userseq','$userdel','$confirmed','$today','$ipaddr','$refurl','$html','0');";
         if ($remote) { //open connection to remote host
-            if (!$dbh) {
+            //if (!$dbh) {
                 try {
                     $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                     $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
@@ -399,10 +400,14 @@ while (list($email) = fgetcsv($csv)) {
                     echo 'Connection failed: ' . $e->getMessage();
                     exit();
                 }
-            }
-            $dbh->query("use $remotedb") or die($dbh->errorInfo());
-            $dbh->exec($cmd) or die($dbh->errorInfo());
+            //}
+            $dbh->query("use $remotedb");// or die($dbh->errorInfo());
+            $dbh->exec($cmd);// or die($dbh->errorInfo());
             $userid = $dbh->lastInsertId();
+            /*if($dbh->errorInfo()){
+                print_r($dbh->errorInfo());
+                die();
+            }*/
             //$dbh = null; //Close the connection
         } else {
             mysql_query($cmd) or die("Database error while inserting.." . mysql_error());
@@ -479,7 +484,7 @@ while (list($email) = fgetcsv($csv)) {
             if (strpos(' ' . $data, 'URL:') == 1)
                 header('Location: ' . str_replace('URL:', '', $data)); else
                 echo $data;
-        echo 'key ' . $key;
+        //echo 'key ' . $key;
     }
 }
 

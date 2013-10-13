@@ -4665,7 +4665,7 @@ function remlists($email, $list, $opt = '', $multis = '') {
         if (strpos($ly, ',') > 0)
             $lx .= 's '; else
             $lx .= ' ';
-        $logtxt .= $lx . $ly . '. ';
+        $logtxt = $lx . $ly . '. ';
     }
 }
 
