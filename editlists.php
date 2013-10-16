@@ -1033,7 +1033,7 @@ $thecode
      <td>
       <img src=1.gif height=3><br>
       <img src=1.gif width=5><input name=add_remchk type=checkbox style=\"width: 13px\" value=1" . $add_remcheck . "><img src=1.gif width=7><span class=table_inside_small>When users are added to this list remove them from the following list(s): </span><br>
-     </td><td align=right><span class=table_inside_small>*</span><img src=1.gif width=2><input type=text class=xbox name=textadd_rem size=10 maxlength=40 value=\"" . htmlspecialchars($add_rem) . "\" style=\"width: 90px;\"><br>
+     </td><td align=right><span class=table_inside_small>*</span><img src=1.gif width=2><input type=text class=xbox name=textadd_rem size=10 maxlength=100 value=\"" . htmlspecialchars($add_rem) . "\" style=\"width: 90px;\"><br>
      </td>
     </tr>
    </table>
