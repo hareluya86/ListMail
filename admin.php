@@ -1074,7 +1074,7 @@ function processmsg2($id, $usid, $lnum, $fname, $lname, $email, $refu, $uip, $us
                                 if ($data1)
                                     $rtext = $data1 . "<br>"; else
                                     $rtext = '';
-                                $rtext .= "<a class=coderem href=\"$rlink\">$data2</a>";
+                                $rtext .= "<a style=\"text-decoration: none;\" class=coderem href=\"$rlink\">$data2</a>";
                             } else {
 
                                 if ($data1)
