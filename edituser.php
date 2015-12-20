@@ -727,9 +727,6 @@ echo " </td></tr></table></div><img src=1.gif height=5><br><input class=button t
     $refurl = $udata[$ru];
     $ulist = $udata[$ls];
     $dateadd = $udata[$da];
-	//debug
-	echo 'edituser assign vars '.$dateadd;
-	//debug
     $seq = $udata[$sq];
     $del = $udata[$de];
     $user1 = $udata[$u0];
@@ -793,10 +790,10 @@ echo " </td></tr></table></div><img src=1.gif height=5><br><input class=button t
 
      if($welcmail || (!$welcmail && !$cnfmail)) $xcnf = '1';  if($cnfmail) $xcnf = '0';
 
-
      $cmd = "insert into $utable values ('null','$uniq_str','$lis','$fname','$lname','$email','$user1','$user2','$user3','$user4','$user5','$user6','$user7','$user8','$user9','$user10','$setseq','$setdel','$xcnf','$today','$ipadd','$refu','1','0')";
      if($demo<>'yes'){
       @mysql_query($cmd,$link);
+      
       if($listopts[2]=='1') remlists($email,$lis,2);
       if($listopts[3]=='1') addlists($email,$lis,3);
       if(!$cnfmail && $xtrmail && file_exists('./signup-xtra.php')){

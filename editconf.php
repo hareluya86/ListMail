@@ -1329,6 +1329,9 @@ $d = getdir();
 
 $cmd="INSERT INTO $ctable VALUES ('$xid','','','".date("Y-m-d H:i:s",time()-31536000)."','admin@$dom','http://www.$dom$d/','!','link_','10;desc;dadd','1','65','$current_version','','mail.$dom','110','bounce@$dom','bounce@$dom','','0','500','4','500','3:30','localhost','25','TRUE','you@$dom','','1000','1;0','mail.$dom','110','you','','19','0','30','60','10','10','1;0;0;0;0','50;5000;10','','1');";
 echo "Inserting example config data.<br>";
+//debug
+echo $cmd;
+//debug
 mysql_query($cmd) or die("**Error inserting example config data.");
 
 setcookie('LMadm1',md5($xid),0);
