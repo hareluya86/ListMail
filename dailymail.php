@@ -575,7 +575,7 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                             try {
                                 $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                                 $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                                echo ++$debug_conn.'<br>';//debug
+                                //echo ++$debug_conn.'<br>';//debug
                             } catch (PDOException $e) {
                                 die('dailymail-4-' . $e->getMessage());
                             }
@@ -681,7 +681,7 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                                 try {
                                     $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                                     $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                                    echo ++$debug_conn.'<br>';//debug
+                                    //echo ++$debug_conn.'<br>';//debug
                                 } catch (PDOException $e) {
                                     die('dailymail-1-' . $e->getMessage());
                                 }
@@ -705,7 +705,7 @@ A dailymail report, if enabled, is always sent to the ListMail administrator.<br
                                 try {
                                     $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                                     $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                                    echo ++$debug_conn.'<br>';//debug
+                                    //echo ++$debug_conn.'<br>';//debug
                                 } catch (PDOException $e) {
                                     die('dailymail-2-' . $e->getMessage());
                                 }

@@ -3809,7 +3809,7 @@ function bounce_remote($email, $msg) {
     $lcmd = "select id,listnum,title,remote,remotedb,remoteuser,remotepwd,remotehost from $ltable";
     $lrow = @mysql_query($lcmd, $link) or die('admin-6-' . mysql_error());
     while (list($lid,$listnum, $ltitle, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = @mysql_fetch_row($lrow)) {
-        echo 'This is list num '.$listnum.'<br>';//debug
+        //echo 'This is list num '.$listnum.'<br>';//debug
         if ($remote) {
             //if(!$dbh){
                 try {
