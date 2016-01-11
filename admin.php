@@ -3393,11 +3393,11 @@ function sendwelcome($userid, $list) {
                 try {
                     $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                     $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                    $dbh->exec($cmd);
                 } catch (PDOException $e) {
                     die('admin-43-' . $e->getMessage());
                 }
             }
+            $dbh->exec($cmd);
             //$dbh = null; //close the connection
         } else {
             @mysql_query($cmd, $link) or die('admin-43-' . mysql_error());
@@ -3811,7 +3811,7 @@ function bounce_remote($email, $msg) {
     while (list($lid,$listnum, $ltitle, $remote, $remotedb, $remoteuser, $remotepwd, $remotehost) = @mysql_fetch_row($lrow)) {
         //echo 'This is list num '.$listnum.'<br>';//debug
         if ($remote) {
-            //if(!$dbh){
+            if(!$dbh){
                 try {
                     $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                     $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
@@ -3819,7 +3819,7 @@ function bounce_remote($email, $msg) {
                 } catch (PDOException $e) {
                     die('admin-5-' . $e->getMessage());// echo 'This is it: '.$email.'<br>';//debug
                 }
-            //}
+            }
             $dbh_query = $dbh->query($ucmd);
             if ($dbh_query->rowCount() > 0) {
                 while (list($id, $list, $email, $bounces) = $dbh_query->fetch()) {
@@ -4640,11 +4640,12 @@ function remlists($email, $list, $opt = '', $multis = '') {
                     try {
                         $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                         $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                        $dbh->exec($cmd);
+                        
                     } catch (PDOException $e) {
                         echo $e->getMessage().'<br>';//debug
                     }
                 }
+                $dbh->exec($cmd);
             } else{//echo "list $v is not a remote list";//debug
                  mysql_query($cmd);
             }

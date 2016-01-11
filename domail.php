@@ -86,11 +86,11 @@ if ($isadmin == 'true') {
                     try {
                         $pdo_db = 'mysql:dbname=' . $remotedb . ';host=' . $remotehost;
                         $dbh = new PDO($pdo_db, $remoteuser, $remotepwd);
-                        $dbh_query = $dbh->query($cmd);
                     } catch (PDOException $e) {
                         die('domail-' . $e->getMessage());
                     }
                 }
+                $dbh_query = $dbh->query($cmd);
                 $sendtousers = $dbh_query; //Store for later use
                 $urows = $sendtousers->fetchAll();
             } else {
